@@ -1,4 +1,4 @@
-import { Euler, Vector3, useFrame, useThree } from '@react-three/fiber'
+import { Euler, Vector3, useFrame } from '@react-three/fiber'
 import { useRef, useState } from 'react';
 import { motion } from "framer-motion-3d"
 import { Container, Root, Text } from '@react-three/uikit';
@@ -8,17 +8,18 @@ import { Card } from './components/card';
 import { RootContainer, SVG, } from '@coconut-xr/koestlich';
 import { Glass, IconButton } from '@coconut-xr/apfel-kruemel';
 import { useNavigate } from 'react-router-dom';
+import { NftInformation } from './types';
 
 const rotation = new THREE.Vector3()
 
-export default function NFT(props: { position?: Vector3, scale?: number, rotation?: Euler }) {
+export default function NFT(props: { position?: Vector3, scale?: number, rotation?: Euler, information: NftInformation, }) {
+    const { information } = props
     const [hover, setHover] = useState(false)
     const [near, setNear] = useState(false)
     const [liked, setLiked] = useState(false)
     const navigate = useNavigate();
     const popup = useRef<THREE.Group<THREE.Object3DEventMap>>(null)
     const nft = useRef<THREE.Group<THREE.Object3DEventMap>>(null)
-    const get = useThree((state) => state.get)
 
     useFrame((state) => {
         if (popup.current) {
@@ -47,13 +48,15 @@ export default function NFT(props: { position?: Vector3, scale?: number, rotatio
                         duration: 0.8,
                         ease: [0, 0.71, 0.2, 1.01]
                     }}
+                    rotation={[-Math.PI / 6, 0, 0]}
+                    position={[0, -0.35, 0]}
                 >
                     <Root>
                         <Container alignContent="center">
-                            <Card borderRadius={32} padding={32} gap={8} flexDirection="column" alignContent="center">
-                                <Text fontSize={32}>Mahiru Shiina</Text>
+                            <Card maxWidth={500} borderRadius={32} padding={32} gap={8} flexDirection="column" alignContent="center">
+                                <Text fontSize={32}>{information.name}</Text>
                                 <Text fontSize={24} opacity={0.7}>
-                                    This is an NFT.
+                                    {information.description}
                                 </Text>
                             </Card>
                         </Container>
@@ -63,7 +66,7 @@ export default function NFT(props: { position?: Vector3, scale?: number, rotatio
             <group ref={nft} position={props.position} rotation={props.rotation}>
                 <RatioImage
                     onPointerMove={() => setHover(true)} onPointerLeave={() => setHover(false)}
-                    url="https://i.imgur.com/MVZJ0Bw.jpeg"
+                    url={information.url}
                     toneMapped
                     position={[0, 0, 0]}
                     scale={props.scale}
@@ -83,7 +86,7 @@ export default function NFT(props: { position?: Vector3, scale?: number, rotatio
                             <IconButton size="md" platter display={near ? 'flex' : 'none'}>
                                 <SVG url="/icons/information.svg" depth={3} />
                             </IconButton>
-                            <IconButton size="md" platter display={near ? 'flex' : 'none'} onClick={() => { get().camera.position.set(0, 4, 0); navigate("/nft") }}>
+                            <IconButton size="md" platter display={near ? 'flex' : 'none'} onClick={() => { navigate("/nft") }}>
                                 <SVG url="/icons/eye.svg" depth={3} />
                             </IconButton>
                         </Glass>

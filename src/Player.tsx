@@ -1,8 +1,8 @@
 import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d-compat"
-import { useRef } from "react"
-import { useFrame } from "@react-three/fiber"
-import { useKeyboardControls } from "@react-three/drei"
+import { useEffect, useRef } from "react"
+import { Vector3, useFrame, useThree } from "@react-three/fiber"
+import { useKeyboardControls, } from "@react-three/drei"
 import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier, vec3 } from "@react-three/rapier"
 
 const SPEED = 5
@@ -10,10 +10,11 @@ const direction = new THREE.Vector3()
 const frontVector = new THREE.Vector3()
 const sideVector = new THREE.Vector3()
 
-export function Player() {
+export default function Player({ initial }: { initial?: Vector3 }) {
     const ref = useRef<RapierRigidBody>(null)
     const rapier = useRapier()
     const [, get] = useKeyboardControls()
+    const camera = useThree(state => state.camera)
     useFrame((state) => {
         if (!ref.current) return;
         const { forward, backward, left, right, jump } = get()
@@ -32,9 +33,13 @@ export function Player() {
         const grounded = ray && ray.collider && Math.abs(ray.toi) <= 1.75
         if (jump && grounded) ref.current.setLinvel({ x: 0, y: 3, z: 0 }, true)
     })
+    useEffect(() => {
+        camera.rotation.set(0, 0, 0)
+    }, [])
     return (
         <>
-            <RigidBody ref={ref} colliders={false} mass={1} type="dynamic" position={[0, 4, 0]} enabledRotations={[false, false, false]}>
+            <RigidBody ref={ref} colliders={false} mass={1} type="dynamic" position={initial || [0, 4.5, 0]} enabledRotations={[false, false, false]}
+            >
                 <CapsuleCollider args={[0.75, 0.5]} />
             </RigidBody>
         </>

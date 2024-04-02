@@ -6,16 +6,17 @@ import {
 import { XRCanvas } from '@coconut-xr/natuerlich/defaults';
 
 import XR from './XR';
+import { Leva } from 'leva';
 
 const sessionOptions: XRSessionInit = {
   requiredFeatures: ["local-floor"]
 };
 
 function App() {
-  const enterAR = useEnterXR("immersive-ar", sessionOptions);
-
+  const enterVR = useEnterXR("immersive-vr", sessionOptions);
   return (
     <div className="App">
+      <Leva />
       <div className="dot" />
       <KeyboardControls
         map={[

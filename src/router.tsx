@@ -1,7 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
-import Gallery from "./pages/Gallery";
-import NftPage from "./pages/NFT";
 
 const router = createBrowserRouter([
     {
@@ -10,11 +8,11 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "/",
-                element: <Gallery />
+                lazy: () => import("./pages/Gallery")
             },
             {
                 path: "/nft",
-                element: <NftPage />
+                lazy: () => import("./pages/Kaori")
             }
         ]
     },
