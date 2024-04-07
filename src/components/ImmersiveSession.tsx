@@ -9,7 +9,7 @@ function ImmersiveSession() {
     const inputSources = useInputSources();
 
     return (
-        <ImmersiveSessionOrigin>
+        <ImmersiveSessionOrigin position={[0, -0.9, 0]}>
             {inputSources.map((inputSource) =>
                 inputSource.hand != null ? (
                     <TouchHand

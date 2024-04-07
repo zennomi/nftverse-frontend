@@ -1,4 +1,3 @@
-import { NonImmersiveCamera, ImmersiveSessionOrigin } from "@coconut-xr/natuerlich/react";
 import { Sky, PointerLockControls } from "@react-three/drei";
 import { Physics } from "@react-three/rapier";
 import { Outlet } from "react-router-dom";
@@ -11,13 +10,11 @@ export default function XR() {
     return (
         <Suspense fallback={<LoadingScreen />}>
             <Sky sunPosition={[100, 20, 100]} />
-            <Physics>
+            <Physics debug>
                 <Outlet />
                 <Ground />
             </Physics>
             <PointerLockControls />
-            <NonImmersiveCamera position={[0, 4, 0]} />
-            <ImmersiveSessionOrigin />
         </Suspense>
     )
 }

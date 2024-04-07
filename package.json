@@ -18,7 +18,6 @@
     "@react-three/rapier": "^1.3.0",
     "@react-three/uikit": "^0.2.3",
     "@react-three/uikit-lucide": "^0.2.3",
-    "@react-three/xr": "^5.7.1",
     "framer-motion-3d": "^11.0.20",
     "leva": "^0.9.35",
     "react": "^18.2.0",

@@ -17,6 +17,7 @@ function App() {
   return (
     <div className="App">
       <Leva />
+      <button onClick={() => enterVR()}>Enter VR</button>
       <div className="dot" />
       <KeyboardControls
         map={[
@@ -26,7 +27,7 @@ function App() {
           { name: "right", keys: ["ArrowRight", "d", "D"] },
           { name: "jump", keys: ["Space"] },
         ]}>
-        <XRCanvas shadows camera={{ fov: 45 }}>
+        <XRCanvas shadows camera={{ position: [0, 5, 0], rotation: [0, Math.PI / 2, 0] }}>
           <XR />
         </XRCanvas>
       </KeyboardControls>

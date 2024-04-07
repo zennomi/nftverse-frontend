@@ -13,7 +13,11 @@ const router = createBrowserRouter([
             {
                 path: "/nft",
                 lazy: () => import("./pages/Kaori")
-            }
+            },
+            {
+                path: "/test",
+                lazy: () => import("./pages/Test")
+            },
         ]
     },
 ]);

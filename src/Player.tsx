@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react"
 import { Vector3, useFrame, useThree } from "@react-three/fiber"
 import { useKeyboardControls, } from "@react-three/drei"
 import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier, vec3 } from "@react-three/rapier"
+import ImmersiveSession from "./components/ImmersiveSession"
 
 const SPEED = 5
 const direction = new THREE.Vector3()
@@ -40,7 +41,9 @@ export default function Player({ initial }: { initial?: Vector3 }) {
         <>
             <RigidBody ref={ref} colliders={false} mass={1} type="dynamic" position={initial || [0, 4.5, 0]} enabledRotations={[false, false, false]}
             >
-                <CapsuleCollider args={[0.75, 0.5]} />
+                <CapsuleCollider args={[0.75, 0.5]}>
+                    <ImmersiveSession />
+                </CapsuleCollider>
             </RigidBody>
         </>
     )
