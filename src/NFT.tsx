@@ -24,8 +24,9 @@ export default function NFT(props: { position?: Vector3, scale?: number, rotatio
 
     useFrame((state) => {
         state.camera.getWorldPosition(position)
+        state.camera.getWorldDirection(direction)
         if (popup.current) {
-            popup.current.position.copy(position).add(state.camera.getWorldDirection(direction).multiplyScalar(1.5))
+            popup.current.position.copy(position).add(direction.multiplyScalar(2))
             popup.current.rotation.copy(state.camera.rotation)
         }
 
@@ -56,9 +57,9 @@ export default function NFT(props: { position?: Vector3, scale?: number, rotatio
                 >
                     <Root>
                         <Container alignContent="center">
-                            <Card maxWidth={500} borderRadius={32} padding={32} gap={8} flexDirection="column" alignContent="center">
-                                <Text fontSize={32}>{information.name}</Text>
-                                <Text fontSize={24} opacity={0.7}>
+                            <Card maxWidth={100} borderRadius={8} padding={8} gap={2} flexDirection="column" alignContent="center">
+                                <Text fontSize={8}>{information.name}</Text>
+                                <Text fontSize={6} opacity={0.7}>
                                     {information.description}
                                 </Text>
                             </Card>
