@@ -19,7 +19,7 @@ export default function InputSource({ inputSource, body }: { inputSource: XRInpu
         if (!body.current) return;
         const position = vec3(body.current.translation())
         // update camera
-        state.camera.position.set(position.x, position.y, position.z)
+        // state.camera.position.set(position.x, position.y, position.z)
         const velocity = body.current.linvel()
         // movement
         reader.readAxes("xr-standard-thumbstick", vector2)

@@ -6,7 +6,7 @@ import { Exhibition } from "../models/Exhibition";
 import { RatioImage } from "../RatioImage";
 import Player from "../Player";
 
-export default function NftPage() {
+export function Component() {
     const imgRef = useRef<THREE.Group>(null)
 
     useFrame((_, delta) => {

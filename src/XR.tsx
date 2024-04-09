@@ -10,7 +10,7 @@ export default function XR() {
     return (
         <Suspense fallback={<LoadingScreen />}>
             <Sky sunPosition={[100, 20, 100]} />
-            <Physics debug>
+            <Physics>
                 <Outlet />
                 <Ground />
             </Physics>

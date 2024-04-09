@@ -3,8 +3,10 @@ import * as RAPIER from "@dimforge/rapier3d-compat"
 import { useEffect, useRef } from "react"
 import { Vector3, useFrame, useThree } from "@react-three/fiber"
 import { useKeyboardControls, } from "@react-three/drei"
-import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier, vec3 } from "@react-three/rapier"
-import ImmersiveSession from "./components/ImmersiveSession"
+import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier } from "@react-three/rapier"
+import { ImmersiveSessionOrigin, NonImmersiveCamera, useInputSources, useXR } from "@coconut-xr/natuerlich/react"
+import { getInputSourceId } from "@coconut-xr/natuerlich"
+import InputSource from "./components/InputSource"
 
 const SPEED = 5
 const direction = new THREE.Vector3()
@@ -15,14 +17,15 @@ export default function Player({ initial }: { initial?: Vector3 }) {
     const ref = useRef<RapierRigidBody>(null)
     const rapier = useRapier()
     const [, get] = useKeyboardControls()
+    const inputSources = useInputSources()
     const camera = useThree(state => state.camera)
+
     useFrame((state) => {
         if (!ref.current) return;
+        if (useXR.getState().mode === "immersive-vr") return;
+
         const { forward, backward, left, right, jump } = get()
         const velocity = ref.current.linvel()
-        const position = vec3(ref.current.translation())
-        // update camera
-        state.camera.position.set(position.x, position.y, position.z)
         // movement
         frontVector.set(0, 0, Number(backward) - Number(forward))
         sideVector.set(Number(left) - Number(right), 0, 0)
@@ -39,10 +42,20 @@ export default function Player({ initial }: { initial?: Vector3 }) {
     }, [])
     return (
         <>
-            <RigidBody ref={ref} colliders={false} mass={1} type="dynamic" position={initial || [0, 4.5, 0]} enabledRotations={[false, false, false]}
+            <RigidBody ref={ref} colliders={false} mass={1} type="dynamic" position={initial || [0, 4.5, 1]} enabledRotations={[false, false, false]}
             >
-                <CapsuleCollider args={[0.75, 0.5]}>
-                    <ImmersiveSession />
+                <CapsuleCollider
+                    args={[0.75, 0.5]}
+                    mass={1}
+                >
+                    <NonImmersiveCamera />
+                    <ImmersiveSessionOrigin
+                        position={[0, -1.5, 0]}
+                    >
+                        {
+                            inputSources.map(inputSource => <InputSource key={getInputSourceId(inputSource)} inputSource={inputSource} body={ref} />)
+                        }
+                    </ImmersiveSessionOrigin>
                 </CapsuleCollider>
             </RigidBody>
         </>

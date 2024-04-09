@@ -10,7 +10,8 @@ import { Glass, IconButton } from '@coconut-xr/apfel-kruemel';
 import { useNavigate } from 'react-router-dom';
 import { NftInformation } from './types';
 
-const rotation = new THREE.Vector3()
+const direction = new THREE.Vector3()
+const position = new THREE.Vector3()
 
 export default function NFT(props: { position?: Vector3, scale?: number, rotation?: Euler, information: NftInformation, }) {
     const { information } = props
@@ -22,14 +23,16 @@ export default function NFT(props: { position?: Vector3, scale?: number, rotatio
     const nft = useRef<THREE.Group<THREE.Object3DEventMap>>(null)
 
     useFrame((state) => {
+        state.camera.getWorldPosition(position)
         if (popup.current) {
-            popup.current.position.copy(state.camera.position).add(state.camera.getWorldDirection(rotation).multiplyScalar(1.5))
+            popup.current.position.copy(position).add(state.camera.getWorldDirection(direction).multiplyScalar(1.5))
             popup.current.rotation.copy(state.camera.rotation)
         }
 
         if (nft.current) {
-            const distance = nft.current.position.distanceTo(state.camera.position)
-            setNear(distance < 4)
+            const distance = nft.current.position.distanceTo(position)
+            if (near !== distance < 4)
+                setNear(!near)
         }
     })
 
