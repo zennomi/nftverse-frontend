@@ -1,23 +1,25 @@
 import './App.css'
 import { KeyboardControls, } from '@react-three/drei'
-import {
-  useEnterXR
-} from "@coconut-xr/natuerlich/react";
 import { XRCanvas } from '@coconut-xr/natuerlich/defaults';
 
 import XR from './XR';
 import { Leva } from 'leva';
-
-const sessionOptions: XRSessionInit = {
-  requiredFeatures: ["local-floor"]
-};
+import { MouseEventHandler } from 'react';
+import { useAppContext } from './components/AppProvider';
 
 function App() {
-  const enterVR = useEnterXR("immersive-vr", sessionOptions);
+
+  const { toggleMainMenu } = useAppContext()
+  const handleRightClick: MouseEventHandler<HTMLDivElement> = (event) => {
+    event.preventDefault()
+    if (event.button === 2) {
+      toggleMainMenu();
+    }
+  };
+
   return (
-    <div className="App">
+    <div className="App" onContextMenu={handleRightClick}>
       <Leva />
-      <button onClick={() => enterVR()}>Enter VR</button>
       <div className="dot" />
       <KeyboardControls
         map={[
@@ -26,7 +28,12 @@ function App() {
           { name: "left", keys: ["ArrowLeft", "a", "A"] },
           { name: "right", keys: ["ArrowRight", "d", "D"] },
           { name: "jump", keys: ["Space"] },
-        ]}>
+          { name: "menu", keys: ["M", "m"] }
+        ]}
+        onChange={(name, pressed,) => {
+          if (name === "menu" && pressed) toggleMainMenu()
+        }}
+      >
         <XRCanvas shadows camera={{ position: [0, 5, 0], rotation: [0, Math.PI / 2, 0] }}>
           <XR />
         </XRCanvas>

@@ -1,10 +1,11 @@
 import { getInputSourceId } from "@coconut-xr/natuerlich";
 import { PointerController, TouchHand } from "@coconut-xr/natuerlich/defaults";
-import { useXRGamepadReader } from "@coconut-xr/natuerlich/react";
+import { useXRGamepadButton, useXRGamepadReader } from "@coconut-xr/natuerlich/react";
 import { useFrame } from "@react-three/fiber";
 import { RapierRigidBody, vec3 } from "@react-three/rapier";
 import { RefObject } from "react";
 import * as THREE from "three"
+import { useAppContext } from "./AppProvider";
 
 const SPEED = 5
 const vector2 = new THREE.Vector2()
@@ -13,13 +14,15 @@ const frontVector = new THREE.Vector3()
 const sideVector = new THREE.Vector3()
 
 export default function InputSource({ inputSource, body }: { inputSource: XRInputSource, body: RefObject<RapierRigidBody> }) {
+    const inputSourceId = getInputSourceId(inputSource)
     const reader = useXRGamepadReader(inputSource)
+    const { toggleMainMenu } = useAppContext()
+    useXRGamepadButton(inputSource, "a-button", () => {
+        toggleMainMenu()
+    })
 
     useFrame((state) => {
         if (!body.current) return;
-        const position = vec3(body.current.translation())
-        // update camera
-        // state.camera.position.set(position.x, position.y, position.z)
         const velocity = body.current.linvel()
         // movement
         reader.readAxes("xr-standard-thumbstick", vector2)
@@ -34,15 +37,15 @@ export default function InputSource({ inputSource, body }: { inputSource: XRInpu
     return inputSource.hand != null ? (
         <TouchHand
             cursorOpacity={1}
-            key={getInputSourceId(inputSource)}
-            id={getInputSourceId(inputSource)}
+            key={inputSourceId}
+            id={inputSourceId}
             inputSource={inputSource}
             hand={inputSource.hand}
         />
     ) : (
         <PointerController
-            key={getInputSourceId(inputSource)}
-            id={getInputSourceId(inputSource)}
+            key={inputSourceId}
+            id={inputSourceId}
             inputSource={inputSource}
         />
     )

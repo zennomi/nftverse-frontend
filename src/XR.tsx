@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 import { Ground } from "./components/Ground";
 import { Suspense } from "react";
 import LoadingScreen from "./components/LoadingScreen";
+import MainMenu from "./components/MainMenu";
 
 export default function XR() {
 
@@ -14,6 +15,7 @@ export default function XR() {
                 <Outlet />
                 <Ground />
             </Physics>
+            <MainMenu />
             <PointerLockControls />
         </Suspense>
     )
