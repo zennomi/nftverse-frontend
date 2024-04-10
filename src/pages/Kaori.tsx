@@ -1,11 +1,11 @@
 import { Environment, Float, Image } from "@react-three/drei";
 import { Kaori } from "../models/Kaori";
 import { Stage } from "../models/Stage";
-import Player from "../Player";
+import Player from "../components/Player";
 import { RigidBody } from "@react-three/rapier";
 import { Root, Text } from "@react-three/uikit";
-import { Card } from "../components/card";
-import { Button } from "../components/button";
+import { Card } from "../components/apfel/card";
+import { Button } from "../components/apfel/button";
 import { Suspense, useState } from "react";
 import LoadingScreen from "../components/LoadingScreen";
 

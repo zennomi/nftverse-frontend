@@ -6,7 +6,7 @@ import { useKeyboardControls, } from "@react-three/drei"
 import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier } from "@react-three/rapier"
 import { ImmersiveSessionOrigin, NonImmersiveCamera, useInputSources, useXR } from "@coconut-xr/natuerlich/react"
 import { getInputSourceId } from "@coconut-xr/natuerlich"
-import InputSource from "./components/InputSource"
+import InputSource from "./InputSource"
 
 const SPEED = 5
 const direction = new THREE.Vector3()

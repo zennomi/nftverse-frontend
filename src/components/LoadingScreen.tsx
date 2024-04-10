@@ -1,8 +1,8 @@
 import { Text } from "@react-three/uikit";
-import { Card } from "./card";
-import { Loading } from "./loading";
+import { Card } from "./apfel/card";
+import { Loading } from "./apfel/loading";
 import { useProgress } from "@react-three/drei";
-import { Fullscreen } from "./Fullscreen";
+import { Fullscreen } from "./override/Fullscreen";
 
 export default function LoadingScreen() {
     const { progress } = useProgress()

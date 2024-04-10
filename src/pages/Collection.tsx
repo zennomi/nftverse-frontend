@@ -1,9 +1,9 @@
 import { Environment } from "@react-three/drei";
 import Gallery from "../models/Gallery";
-import NFT from "../NFT";
+import NFT from "../components/NFT";
 import { Suspense } from "react";
 import LoadingScreen from "../components/LoadingScreen";
-import Player from "../Player";
+import Player from "../components/Player";
 
 export function Component() {
     return (

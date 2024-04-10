@@ -3,8 +3,8 @@ import { useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three"
 import { Exhibition } from "../models/Exhibition";
-import { RatioImage } from "../RatioImage";
-import Player from "../Player";
+import { RatioImage } from "../components/override/RatioImage";
+import Player from "../components/Player";
 
 export function Component() {
     const imgRef = useRef<THREE.Group>(null)

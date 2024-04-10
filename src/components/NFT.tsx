@@ -3,12 +3,12 @@ import { useRef, useState } from 'react';
 import { motion } from "framer-motion-3d"
 import { Container, Root, Text } from '@react-three/uikit';
 import * as THREE from "three"
-import { RatioImage } from './RatioImage';
-import { Card } from './components/card';
+import { RatioImage } from './override/RatioImage';
+import { Card } from './apfel/card';
 import { RootContainer, SVG, } from '@coconut-xr/koestlich';
 import { Glass, IconButton } from '@coconut-xr/apfel-kruemel';
 import { useNavigate } from 'react-router-dom';
-import { NftInformation } from './types';
+import { NftInformation } from '../types';
 
 const direction = new THREE.Vector3()
 const position = new THREE.Vector3()
