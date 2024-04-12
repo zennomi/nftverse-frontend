@@ -1,6 +1,11 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
-export const AppContext = createContext({
+type AppValueType = {
+    openMainMenu: boolean,
+    toggleMainMenu: () => void,
+}
+
+export const AppContext = createContext<AppValueType>({
     openMainMenu: false,
     toggleMainMenu: () => { }
 });

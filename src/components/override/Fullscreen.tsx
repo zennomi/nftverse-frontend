@@ -1,54 +1,38 @@
-import { ReactNode, RefAttributes, forwardRef, useEffect, useMemo, useRef } from 'react'
+import { ReactNode, RefAttributes, forwardRef, useEffect, useMemo } from 'react'
 import { batch, signal } from '@preact/signals-core'
-import { RootState, createPortal, useFrame, useStore, useThree } from '@react-three/fiber'
+import { RootState, createPortal, useStore, useThree } from '@react-three/fiber'
 import { EventHandlers } from '@react-three/fiber/dist/declarations/src/core/events.js'
-import { Group, PerspectiveCamera } from 'three'
-import { ComponentInternals, Root, RootProperties, } from '@react-three/uikit'
+import { FullscreenProperties, RootProperties, updateSizeFullscreen } from '@pmndrs/uikit/internals'
+import { ComponentInternals, Root } from '@react-three/uikit'
 import { useXR } from '@coconut-xr/natuerlich/react'
 
 export const Fullscreen: (
-    props: RootProperties & {
+    props: FullscreenProperties & {
         children?: ReactNode
         attachCamera?: boolean
+        distanceToCamera?: number
     } & EventHandlers &
-        RefAttributes<ComponentInternals>,
+        RefAttributes<ComponentInternals<RootProperties>>,
 ) => ReactNode = forwardRef((properties, ref) => {
     const store = useStore()
-    const pixelSize = 0.01
-    const [sizeX, sizeY] = useMemo(() => {
-        const { width, height } = store.getState().size
-        return [signal(width * pixelSize), signal(height * pixelSize)] as const
-    }, [pixelSize, store])
+    const [sizeX, sizeY, pixelSize] = useMemo(() => [signal<number>(1), signal<number>(1), signal<number>(1)], [])
+    const camera = useThree((s) => s.camera)
+    const distanceToCamera = properties.distanceToCamera ?? camera.near + 0.01
     useEffect(() => {
-        const fn = (state: RootState) => {
-            batch(() => {
-                sizeX.value = state.size.width * pixelSize
-                sizeY.value = state.size.height * pixelSize
-            })
-        }
+        const fn = ({ camera, size: { height } }: RootState) =>
+            batch(() => updateSizeFullscreen(sizeX, sizeY, pixelSize, distanceToCamera, camera, height))
         fn(store.getState())
         return store.subscribe(fn)
-    }, [pixelSize, sizeX, sizeY, store])
-    const camera = useThree((s) => s.camera)
-    const groupRef = useRef<Group>(null)
-    useFrame(() => {
-        if (groupRef.current == null) {
-            return
-        }
-        let distance = 1
-        if (camera instanceof PerspectiveCamera) {
-            distance = sizeY.peek() / (2 * Math.tan((camera.fov / 360) * Math.PI))
-        }
-        groupRef.current.position.z = -distance
-        groupRef.current.updateMatrix()
-    })
+    }, [pixelSize, sizeX, sizeY, store, distanceToCamera])
+
     const attachCamera = useXR.getState().mode === "none" ? (properties.attachCamera ?? true) : false
+
     return (
         <>
             {attachCamera && <primitive object={camera} />}
             {createPortal(
-                <group ref={groupRef} matrixAutoUpdate={false}>
-                    <Root ref={ref} {...properties} sizeX={sizeX} sizeY={sizeY}>
+                <group position-z={-distanceToCamera}>
+                    <Root ref={ref} {...properties} sizeX={sizeX} sizeY={sizeY} pixelSize={pixelSize}>
                         {properties.children}
                     </Root>
                 </group>,

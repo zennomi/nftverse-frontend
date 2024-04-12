@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { RapierRigidBody, vec3 } from "@react-three/rapier";
 import { RefObject } from "react";
 import * as THREE from "three"
-import { useAppContext } from "./AppProvider";
+import { useAppContext } from "../contexts/AppProvider";
 
 const SPEED = 5
 const vector2 = new THREE.Vector2()

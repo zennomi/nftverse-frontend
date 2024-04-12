@@ -5,7 +5,7 @@ import { XRCanvas } from '@coconut-xr/natuerlich/defaults';
 import XR from './XR';
 import { Leva } from 'leva';
 import { MouseEventHandler } from 'react';
-import { useAppContext } from './components/AppProvider';
+import { useAppContext } from './contexts/AppProvider';
 
 function App() {
 

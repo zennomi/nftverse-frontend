@@ -4,19 +4,22 @@ import { Outlet } from "react-router-dom";
 import { Ground } from "./components/Ground";
 import { Suspense } from "react";
 import LoadingScreen from "./components/LoadingScreen";
-import MainMenu from "./components/MainMenu";
+import MainMenu from "./menus/MainMenu";
+import ToastContainer from "./contexts/ToastContainer";
 
 export default function XR() {
 
     return (
         <Suspense fallback={<LoadingScreen />}>
-            <Sky sunPosition={[100, 20, 100]} />
-            <Physics>
-                <Outlet />
-                <Ground />
-            </Physics>
-            <MainMenu />
-            <PointerLockControls />
+            <ToastContainer>
+                <Sky sunPosition={[100, 20, 100]} />
+                <Physics>
+                    <Outlet />
+                    <Ground />
+                </Physics>
+                <MainMenu />
+                <PointerLockControls />
+            </ToastContainer>
         </Suspense>
     )
 }
