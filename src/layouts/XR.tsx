@@ -1,11 +1,11 @@
 import { Sky, PointerLockControls } from "@react-three/drei";
 import { Physics } from "@react-three/rapier";
 import { Outlet } from "react-router-dom";
-import { Ground } from "./components/Ground";
+import { Ground } from "../components/Ground";
 import { Suspense } from "react";
-import LoadingScreen from "./components/LoadingScreen";
-import MainMenu from "./menus/MainMenu";
-import ToastContainer from "./contexts/ToastContainer";
+import LoadingScreen from "../components/LoadingScreen";
+import MainMenu from "../menus/MainMenu";
+import ToastContainer from "../contexts/ToastContainer";
 
 export default function XR() {
 

@@ -1,24 +1,28 @@
 import { createBrowserRouter } from "react-router-dom";
-import App from "../App";
+import XRLayout from "../layouts/XRLayout";
 
 const router = createBrowserRouter([
     {
-        path: "/",
-        element: <App />,
+        path: "/xr",
+        element: <XRLayout />,
         children: [
             {
-                path: "/",
+                path: "/xr/home",
+                lazy: () => import("../pages/Home")
+            },
+            {
+                path: "/xr/collection",
                 lazy: () => import("../pages/Collection")
             },
             {
-                path: "/nft",
+                path: "/xr/nft",
                 lazy: () => import("../pages/Asset")
             },
-            {
-                path: "/test",
-                lazy: () => import("../pages/Test")
-            },
         ]
+    },
+    {
+        path: "/test",
+        lazy: () => import("../pages/Test")
     },
 ]);
 
