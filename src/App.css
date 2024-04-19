@@ -14,3 +14,16 @@
   border: 2px solid white;
   z-index: 9999;
 }
+
+.enter-vr-button {
+  position: absolute;
+  top: 10px; /* Adjust for desired distance from top */
+  left: 10px; /* Adjust for desired distance from left */
+  padding: 10px 20px; /* Adjust padding as needed */
+  background-color: #4caf50; /* Change background color */
+  color: white;
+  border: none;
+  border-radius: 5px; /* Add rounded corners */
+  cursor: pointer; /* Indicate clickable button */
+  z-index: 9999;
+}
