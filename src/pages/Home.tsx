@@ -1,5 +1,5 @@
-import { MaterialNode, extend, useFrame, useThree } from "@react-three/fiber";
-import { RefObject, useEffect, useRef, useState } from "react";
+import { GroupProps, MaterialNode, extend, useFrame, useLoader, useThree } from "@react-three/fiber";
+import { RefObject, forwardRef, useEffect, useRef, useState } from "react";
 import * as THREE from "three"
 import { Controllers } from "@coconut-xr/natuerlich/defaults";
 import { ImmersiveSessionOrigin } from "@coconut-xr/natuerlich/react";
@@ -7,60 +7,80 @@ import { useControls } from "leva";
 import { DEFAULT_MODE, MODES, MODE_CONFIG } from "../configs/mode";
 import { GroundPrideShaderMaterial, GroundShaderMaterial } from "../components/material/ground";
 import { SkyShaderMaterial } from "../components/material/sky";
+import { TransitionMaterial } from "../components/material/wipeTransition";
+import { TextureLoader } from 'three/src/loaders/TextureLoader';
+import { useFBO } from "@react-three/drei";
+import { CheckboardTransitionMaterial } from "../components/material/checkboardTransittion";
 
-extend({ SkyShaderMaterial, GroundShaderMaterial, GroundPrideShaderMaterial });
+extend({ SkyShaderMaterial, GroundShaderMaterial, GroundPrideShaderMaterial, TransitionMaterial, CheckboardTransitionMaterial });
 
 declare module '@react-three/fiber' {
     interface ThreeElements {
         skyShaderMaterial: MaterialNode<THREE.Material, typeof SkyShaderMaterial>,
         groundShaderMaterial: MaterialNode<THREE.Material, typeof GroundShaderMaterial>,
         groundPrideShaderMaterial: MaterialNode<THREE.Material, typeof GroundPrideShaderMaterial>,
+        transitionMaterial: MaterialNode<THREE.Material, typeof TransitionMaterial>,
     }
 };
 
 export function Component() {
     const [mode, setMode] = useState<keyof typeof MODE_CONFIG>(DEFAULT_MODE)
     const [prevMode, setPrevMode] = useState<keyof typeof MODE_CONFIG>(DEFAULT_MODE)
-    const camera = useThree(state => state.camera)
+    const { camera, viewport } = useThree()
 
-    const skyShader = useRef<THREE.ShaderMaterial>(null)
-    const groundShader = useRef<THREE.ShaderMaterial>(null)
+    const renderedScene1 = useRef<THREE.Group>(null);
+    const renderedScene2 = useRef<THREE.Group>(null);
+    // const exampleScene = useRef();
+
+    const renderTarget = useFBO();
+    const renderTarget2 = useFBO();
+    const renderMaterial = useRef<THREE.ShaderMaterial>(null);
+    const renderMesh = useRef<THREE.Mesh>(null)
+
+    const renderCamera = useRef<THREE.PerspectiveCamera>(null);
+
+    const transitionTexture = useLoader(TextureLoader, '/textures/transition2.png')
 
     useControls({
-        mode: { options: MODES, value: mode, onChange: (val) => { setMode((mode) => { setPrevMode(mode); return val }) } }
+        mode: { options: MODES, value: mode, onChange: (val) => { setMode((mode) => { setPrevMode(mode); return val }) } },
     })
 
-    useFrame((state, delta) => {
-
-        if (skyShader.current) {
-            // update uniform variable
-            const _MAT4_1 = new THREE.Matrix4();
-
-            _MAT4_1.copy(state.camera.modelViewMatrix)
-
-            _MAT4_1.elements[12] = _MAT4_1.elements[13] = _MAT4_1.elements[14] = 0;
-
-            _MAT4_1.multiply(state.camera.projectionMatrix)
-
-            _MAT4_1.invert()
-
-            // lerp
-            skyShader.current.uTime = state.clock.getElapsedTime() / 2
-            skyShader.current.uViewDirProjInverse = _MAT4_1
-
-            skyShader.current.uColor0 = (new THREE.Color(...skyShader.current.uColor0).lerp(new THREE.Color(...MODE_CONFIG[mode].Color0), delta)).toArray()
-            skyShader.current.uColor1 = (new THREE.Color(...skyShader.current.uColor1).lerp(new THREE.Color(...MODE_CONFIG[mode].Color1), delta)).toArray()
-            skyShader.current.uColorNight0 = (new THREE.Color(...skyShader.current.uColorNight0).lerp(new THREE.Color(...MODE_CONFIG[mode].ColorNight), delta)).toArray()
-            skyShader.current.uColorNight1 = (new THREE.Color(...skyShader.current.uColorNight1).lerp(new THREE.Color(...MODE_CONFIG[mode].ColorTiles), delta)).toArray()
+    useFrame(({ gl, scene, clock, size }, delta) => {
+        if (renderMaterial.current) {
+            renderMaterial.current.uTime = clock.getElapsedTime() / 2
+            renderMaterial.current.uRez = [size.width, size.height]
         }
+        if (renderedScene1.current && renderedScene2.current && renderMaterial.current && renderMesh.current && renderCamera.current) {
+            if (renderMaterial.current.progression < 0.9999) {
+                renderMesh.current.visible = true;
+                renderedScene1.current.visible = true;
+                renderedScene2.current.visible = false;
 
-        if (groundShader.current) {
-            groundShader.current.uTime = state.clock.getElapsedTime() / 2
+                gl.setRenderTarget(renderTarget);
 
-            // lerp
-            groundShader.current.uColor = (new THREE.Color(...groundShader.current.uColor).lerp(new THREE.Color(...MODE_CONFIG[mode].Color), delta)).toArray()
-            groundShader.current.uColorNight = (new THREE.Color(...groundShader.current.uColorNight).lerp(new THREE.Color(...MODE_CONFIG[mode].ColorNight), delta)).toArray()
-            groundShader.current.uColorTiles = (new THREE.Color(...groundShader.current.uColorTiles).lerp(new THREE.Color(...MODE_CONFIG[mode].ColorTiles), delta)).toArray()
+                renderMaterial.current.progression = THREE.MathUtils.lerp(
+                    renderMaterial.current.progression,
+                    1,
+                    delta * 4
+                );
+
+                gl.render(scene, renderCamera.current);
+
+                gl.setRenderTarget(renderTarget2);
+
+                renderedScene1.current.visible = false;
+                renderedScene2.current.visible = true;
+
+                gl.render(scene, renderCamera.current);
+                renderedScene2.current.visible = false;
+
+                gl.setRenderTarget(null);
+            } else {
+                renderedScene1.current.visible = false;
+                renderedScene2.current.visible = true;
+                renderMesh.current.visible = false;
+            }
+
         }
     })
 
@@ -70,13 +90,20 @@ export function Component() {
         }
     }, [camera])
 
+    useEffect(() => {
+        if (mode === prevMode) {
+            return;
+        }
+
+        if (renderMaterial.current) renderMaterial.current.progression = 0;
+    }, [mode, prevMode, renderMaterial]);
+
     return (
         <>
-            <ambientLight intensity={10} position={[0, 0.85, 0]} />
+            <ambientLight intensity={100} position={[0, 0.85, 0]} />
             <directionalLight intensity={10} position={[1, 1, 1]} />
-            <Ground shader={groundShader} mode={mode} prevMode={prevMode} />
-            <SkyBox shader={skyShader} mode={mode} prevMode={prevMode} />
-            {/* <PointerLockControls /> */}
+            <Background mode={prevMode} ref={renderedScene1} visible={false} />
+            <Background mode={mode} ref={renderedScene2} />
             <ImmersiveSessionOrigin position={[0, -1.5, 1]}>
                 <Controllers />
             </ImmersiveSessionOrigin>
@@ -84,7 +111,41 @@ export function Component() {
     )
 }
 
-export function Ground({ shader, mode, prevMode }: { shader: RefObject<THREE.ShaderMaterial>, mode: keyof typeof MODE_CONFIG, prevMode: keyof typeof MODE_CONFIG }) {
+export const Background = forwardRef<THREE.Group, { mode: keyof typeof MODE_CONFIG } & GroupProps>(function ({ mode, ...props }, ref) {
+    const skyShader = useRef<THREE.ShaderMaterial>(null)
+    const groundShader = useRef<THREE.ShaderMaterial>(null)
+
+    useFrame(({ camera, clock, },) => {
+        if (skyShader.current) {
+            // update uniform variable
+            const _MAT4_1 = new THREE.Matrix4();
+
+            _MAT4_1.copy(camera.modelViewMatrix)
+
+            _MAT4_1.elements[12] = _MAT4_1.elements[13] = _MAT4_1.elements[14] = 0;
+
+            _MAT4_1.multiply(camera.projectionMatrix)
+
+            _MAT4_1.invert()
+
+            skyShader.current.uTime = clock.getElapsedTime() / 2
+            skyShader.current.uViewDirProjInverse = _MAT4_1
+        }
+
+        if (groundShader.current) {
+            groundShader.current.uTime = clock.getElapsedTime() / 2
+        }
+    })
+
+    return (
+        <group {...props} ref={ref} >
+            <Ground shader={groundShader} mode={mode} />
+            <SkyBox shader={skyShader} mode={mode} />
+        </group>
+    )
+})
+
+export function Ground({ shader, mode, }: { shader: RefObject<THREE.ShaderMaterial>, mode?: keyof typeof MODE_CONFIG }) {
     return (
         <mesh position={[0, -0.5, 1]} rotation={[-Math.PI / 2, 0, 0]}
         >
@@ -108,6 +169,9 @@ export function Ground({ shader, mode, prevMode }: { shader: RefObject<THREE.Sha
                         uniformsNeedUpdate={true}
                         depthTest
                         depthWrite
+                        uColor={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color))}
+                        uColorNight={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorNight))}
+                        uColorTiles={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorTiles))}
                     />
                     :
                     <groundShaderMaterial
@@ -126,13 +190,16 @@ export function Ground({ shader, mode, prevMode }: { shader: RefObject<THREE.Sha
                         uniformsNeedUpdate={true}
                         depthTest
                         depthWrite
+                        uColor={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color))}
+                        uColorNight={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorNight))}
+                        uColorTiles={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorTiles))}
                     />
             }
         </mesh>
     )
 }
 
-export function SkyBox({ shader, mode, prevMode }: { shader: RefObject<THREE.ShaderMaterial>, mode: keyof typeof MODE_CONFIG, prevMode: keyof typeof MODE_CONFIG }) {
+export function SkyBox({ shader, mode, }: { shader: RefObject<THREE.ShaderMaterial>, mode: keyof typeof MODE_CONFIG }) {
     const VERTICES = [-1, 1, 0, -1, -1, 0, 1, -1, 0, 1, 1, 0];
     const INDICES = [0, 1, 2, 0, 2, 3];
     const UVS = [0, 1, 0, 0, 1, 0, 1, 1];
@@ -154,8 +221,13 @@ export function SkyBox({ shader, mode, prevMode }: { shader: RefObject<THREE.Sha
                     uv: new THREE.BufferAttribute(new Float32Array(UVS), 2),
                 }}
             />
+            {/* @ts-ignore */}
             <skyShaderMaterial
                 ref={shader}
+                uColor0={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color0))}
+                uColor1={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color1))}
+                uColorNight0={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorNight))}
+                uColorNight1={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorTiles))}
             />
         </mesh>
     )

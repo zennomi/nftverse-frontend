@@ -12,6 +12,10 @@ const router = createBrowserRouter([
                 lazy: () => import("../pages/Home"),
             },
             {
+                path: "/xr/test",
+                lazy: () => import("../pages/Test")
+            },
+            {
                 path: "/xr/physics",
                 element: <PhysicsLayout />,
                 children: [
@@ -28,10 +32,7 @@ const router = createBrowserRouter([
 
         ]
     },
-    {
-        path: "/test",
-        lazy: () => import("../pages/Test")
-    },
+
 ]);
 
 export default router
