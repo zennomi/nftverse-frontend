@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import XRLayout from "../layouts/XRLayout";
+import PhysicsLayout from "../layouts/Physics";
 
 const router = createBrowserRouter([
     {
@@ -8,16 +9,23 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "/xr/home",
-                lazy: () => import("../pages/Home")
+                lazy: () => import("../pages/Home"),
             },
             {
-                path: "/xr/collection",
-                lazy: () => import("../pages/Collection")
+                path: "/xr/physics",
+                element: <PhysicsLayout />,
+                children: [
+                    {
+                        path: "/xr/physics/collection",
+                        lazy: () => import("../pages/Collection")
+                    },
+                    {
+                        path: "/xr/physics/nft",
+                        lazy: () => import("../pages/Asset")
+                    },
+                ]
             },
-            {
-                path: "/xr/nft",
-                lazy: () => import("../pages/Asset")
-            },
+
         ]
     },
     {

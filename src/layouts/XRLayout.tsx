@@ -2,10 +2,12 @@ import '../App.css'
 import { KeyboardControls, } from '@react-three/drei'
 import { XRCanvas } from '@coconut-xr/natuerlich/defaults';
 
-import XR from '../layouts/XR';
+import XR from './Physics';
 import { Leva } from 'leva';
 import { MouseEventHandler } from 'react';
 import { useAppContext } from '../contexts/AppProvider';
+import { Outlet } from 'react-router-dom';
+import EnterVRButton from '../components/EnterVRButton';
 
 function XRLayout() {
     const { toggleMainMenu } = useAppContext()
@@ -19,6 +21,7 @@ function XRLayout() {
     return (
         <div className="XR" onContextMenu={handleRightClick}>
             <Leva />
+            <EnterVRButton />
             <div className="dot" />
             <KeyboardControls
                 map={[
@@ -33,8 +36,8 @@ function XRLayout() {
                     if (name === "menu" && pressed) toggleMainMenu()
                 }}
             >
-                <XRCanvas gl={{ localClippingEnabled: true }} shadows camera={{ position: [0, 5, 0], rotation: [0, Math.PI / 2, 0], fov: 75 }}>
-                    <XR />
+                <XRCanvas shadows camera={{ position: [0, 5, 0], rotation: [0, Math.PI / 2, 0], fov: 75 }}>
+                    <Outlet />
                 </XRCanvas>
             </KeyboardControls>
         </div>

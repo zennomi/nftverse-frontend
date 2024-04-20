@@ -7,7 +7,7 @@ import LoadingScreen from "../components/LoadingScreen";
 import MainMenu from "../menus/MainMenu";
 import ToastContainer from "../contexts/ToastContainer";
 
-export default function XR() {
+export default function PhysicsLayout() {
 
     return (
         <Suspense fallback={<LoadingScreen />}>
