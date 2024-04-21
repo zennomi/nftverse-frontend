@@ -36,7 +36,7 @@ function XRLayout() {
                     if (name === "menu" && pressed) toggleMainMenu()
                 }}
             >
-                <XRCanvas shadows camera={{ position: [0, 5, 0], rotation: [0, 0, 0], fov: 75 }}>
+                <XRCanvas shadows camera={{ position: [0, 0, 5], rotation: [0, Math.PI / 2, 0], fov: 75 }}>
                     <Outlet />
                 </XRCanvas>
             </KeyboardControls>

@@ -1,4 +1,4 @@
-import { GroupProps, MaterialNode, extend, useFrame, useLoader, useThree } from "@react-three/fiber";
+import { GroupProps, MaterialNode, extend, useFrame, useThree } from "@react-three/fiber";
 import { RefObject, forwardRef, useEffect, useRef, useState } from "react";
 import * as THREE from "three"
 import { Controllers } from "@coconut-xr/natuerlich/defaults";
@@ -8,11 +8,11 @@ import { DEFAULT_MODE, MODES, MODE_CONFIG } from "../configs/mode";
 import { GroundPrideShaderMaterial, GroundShaderMaterial } from "../components/material/ground";
 import { SkyShaderMaterial } from "../components/material/sky";
 import { TransitionMaterial } from "../components/material/wipeTransition";
-import { TextureLoader } from 'three/src/loaders/TextureLoader';
-import { OrbitControls, PerspectiveCamera, useFBO } from "@react-three/drei";
+import { OrbitControls, useFBO } from "@react-three/drei";
+import { GridTransitionMaterial } from "../components/material/gridTransition";
 import { CheckboardTransitionMaterial } from "../components/material/checkboardTransittion";
 
-extend({ SkyShaderMaterial, GroundShaderMaterial, GroundPrideShaderMaterial, TransitionMaterial, CheckboardTransitionMaterial });
+extend({ SkyShaderMaterial, GroundShaderMaterial, GroundPrideShaderMaterial, TransitionMaterial, GridTransitionMaterial, CheckboardTransitionMaterial });
 
 declare module '@react-three/fiber' {
     interface ThreeElements {
@@ -20,13 +20,15 @@ declare module '@react-three/fiber' {
         groundShaderMaterial: MaterialNode<THREE.Material, typeof GroundShaderMaterial>,
         groundPrideShaderMaterial: MaterialNode<THREE.Material, typeof GroundPrideShaderMaterial>,
         transitionMaterial: MaterialNode<THREE.Material, typeof TransitionMaterial>,
+        gridTransitionMaterial: MaterialNode<THREE.Material, typeof GridTransitionMaterial>,
+        checkboardTransitionMaterial: MaterialNode<THREE.Material, typeof CheckboardTransitionMaterial>,
     }
 };
 
 export function Component() {
     const [mode, setMode] = useState<keyof typeof MODE_CONFIG>(DEFAULT_MODE)
     const [prevMode, setPrevMode] = useState<keyof typeof MODE_CONFIG>(DEFAULT_MODE)
-    const { camera, viewport } = useThree()
+    const { camera, } = useThree()
 
     const renderedScene1 = useRef<THREE.Group>(null);
     const renderedScene2 = useRef<THREE.Group>(null);
@@ -37,48 +39,44 @@ export function Component() {
     const renderMaterial = useRef<THREE.ShaderMaterial>(null);
     const renderMesh = useRef<THREE.Mesh>(null)
 
-    const renderCamera = useRef<THREE.PerspectiveCamera>(null);
-
-    const transitionTexture = useLoader(TextureLoader, '/textures/transition2.png')
-
     useControls({
         mode: { options: MODES, value: mode, onChange: (val) => { setMode((mode) => { setPrevMode(mode); return val }) } },
     })
 
-    useFrame(({ gl, scene, clock, size }, delta) => {
+    useFrame(({ gl, scene, clock, camera, viewport }, delta) => {
         if (renderMaterial.current) {
             renderMaterial.current.uTime = clock.getElapsedTime() / 2
-            renderMaterial.current.uRez = [size.width, size.height]
+            renderMaterial.current.uRez = [viewport.width, viewport.height]
         }
-        if (renderedScene1.current && renderedScene2.current && renderMaterial.current && renderMesh.current && renderCamera.current) {
-            if (renderMaterial.current.progression < 0.9999) {
+        if (renderedScene1.current && renderedScene2.current && renderMaterial.current && renderMesh.current) {
+            if (renderMaterial.current.uProgress < 0.9999) {
                 renderMesh.current.visible = true;
                 renderedScene1.current.visible = true;
                 renderedScene2.current.visible = false;
 
                 gl.setRenderTarget(renderTarget);
 
-                renderMaterial.current.progression = THREE.MathUtils.lerp(
-                    renderMaterial.current.progression,
+                renderMaterial.current.uProgress = THREE.MathUtils.lerp(
+                    renderMaterial.current.uProgress,
                     1,
                     delta * 4
                 );
 
-                gl.render(scene, renderCamera.current);
+                gl.render(scene, camera);
 
                 gl.setRenderTarget(renderTarget2);
 
                 renderedScene1.current.visible = false;
                 renderedScene2.current.visible = true;
 
-                gl.render(scene, renderCamera.current);
+                gl.render(scene, camera);
                 renderedScene2.current.visible = false;
 
                 gl.setRenderTarget(null);
             } else {
                 renderedScene1.current.visible = false;
                 renderedScene2.current.visible = true;
-                renderMesh.current.visible = false;
+                renderMesh.current.visible = true;
             }
 
         }
@@ -95,60 +93,29 @@ export function Component() {
             return;
         }
 
-        if (renderMaterial.current) renderMaterial.current.progression = 0;
+        if (renderMaterial.current) renderMaterial.current.uProgress = 0;
     }, [mode, prevMode, renderMaterial]);
 
     return (
         <>
             <OrbitControls />
-            <ambientLight intensity={10} position={[0, 0.85, 0]} />
+            <ambientLight intensity={100} position={[0, 0.85, 0]} />
             <directionalLight intensity={10} position={[1, 1, 1]} />
-            {/* <mesh>
-                <planeGeometry args={[1, 1]} />
-                <meshBasicMaterial color="red" />
-            </mesh> */}
-            <mesh ref={renderMesh} position={[0, 0, -4]}>
-                <planeGeometry args={[viewport.width, viewport.height]} />
-                {/* <bufferGeometry
-                    ref={gemoetry}
-                    attributes={{
-                        position: new THREE.BufferAttribute(new Float32Array(VERTICES), 3),
-                        uv: new THREE.BufferAttribute(new Float32Array(UVS), 2),
-                    }}
-                /> */}
-                {/* <transitionMaterial
-                    ref={renderMaterial}
-                    transparent={false}
-                    depthTest={false}
-                    depthWrite={false}
-                    tex={renderTarget.texture}
-                    tex2={renderTarget2.texture}
-                    toneMapped={false}
-                /> */}
+            <mesh ref={renderMesh} position={[0, 0, 0]}>
+                <planeGeometry args={[2, 2]} />
                 {/* @ts-ignore */}
-                <checkboardTransitionMaterial
+                <gridTransitionMaterial
                     ref={renderMaterial}
                     transparent={false}
                     depthTest={false}
                     depthWrite={false}
-                    tex={renderTarget.texture}
-                    tex2={renderTarget2.texture}
+                    uBackgroundTexture0={renderTarget.texture}
+                    uBackgroundTexture1={renderTarget2.texture}
                     toneMapped={false}
-                    tMixTexture={transitionTexture}
                 />
-
             </mesh>
-            <PerspectiveCamera
-                makeDefault={false}
-                ref={renderCamera}
-                position={camera.position.clone()}
-                rotation={camera.rotation.clone()}
-                far={camera.far}
-                fov={75}
-            />
             <Background mode={prevMode} ref={renderedScene1} visible={false} />
             <Background mode={mode} ref={renderedScene2} />
-            {/* <PointerLockControls /> */}
             <ImmersiveSessionOrigin position={[0, -1.5, 1]}>
                 <Controllers />
             </ImmersiveSessionOrigin>
@@ -190,7 +157,7 @@ export const Background = forwardRef<THREE.Group, { mode: keyof typeof MODE_CONF
     )
 })
 
-export function Ground({ shader, mode, }: { shader: RefObject<THREE.ShaderMaterial>, mode?: keyof typeof MODE_CONFIG }) {
+export function Ground({ shader, mode, }: { shader: RefObject<THREE.ShaderMaterial>, mode: keyof typeof MODE_CONFIG }) {
     return (
         <mesh position={[0, -0.5, 1]} rotation={[-Math.PI / 2, 0, 0]}
         >
@@ -266,6 +233,7 @@ export function SkyBox({ shader, mode, }: { shader: RefObject<THREE.ShaderMateri
                     uv: new THREE.BufferAttribute(new Float32Array(UVS), 2),
                 }}
             />
+            {/* @ts-ignore */}
             <skyShaderMaterial
                 ref={shader}
                 uColor0={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color0))}

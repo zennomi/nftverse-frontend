@@ -4,6 +4,10 @@ import PhysicsLayout from "../layouts/Physics";
 
 const router = createBrowserRouter([
     {
+        path: "/test2",
+        lazy: () => import("../pages/Test2")
+    },
+    {
         path: "/xr",
         element: <XRLayout />,
         children: [
