@@ -2,7 +2,7 @@ import '../App.css'
 import { KeyboardControls, } from '@react-three/drei'
 import { XRCanvas } from '@coconut-xr/natuerlich/defaults';
 
-import XR from './Physics';
+import * as THREE from "three"
 import { Leva } from 'leva';
 import { MouseEventHandler } from 'react';
 import { useAppContext } from '../contexts/AppProvider';
@@ -36,7 +36,14 @@ function XRLayout() {
                     if (name === "menu" && pressed) toggleMainMenu()
                 }}
             >
-                <XRCanvas shadows camera={{ position: [0, 0, 5], rotation: [0, Math.PI / 2, 0], fov: 75 }}>
+                <XRCanvas shadows camera={{ position: [0, 0, 5], rotation: [0, Math.PI / 2, 0], fov: 75 }}
+                    onCreated={({ gl }) => {
+                        gl.setClearColor(0xff0000, 0)
+                    }}
+                    gl={{ antialias: true, toneMapping: THREE.NoToneMapping }}
+                    linear
+                // flat
+                >
                     <Outlet />
                 </XRCanvas>
             </KeyboardControls>

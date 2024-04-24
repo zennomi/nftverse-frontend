@@ -4,13 +4,14 @@ import * as THREE from "three"
 import { Controllers } from "@coconut-xr/natuerlich/defaults";
 import { ImmersiveSessionOrigin } from "@coconut-xr/natuerlich/react";
 import { useControls } from "leva";
-import { DEFAULT_MODE, MODES, MODE_CONFIG } from "../configs/mode";
+import { MODES, MODE_CONFIG } from "../configs/mode";
 import { GroundPrideShaderMaterial, GroundShaderMaterial } from "../components/material/ground";
 import { SkyShaderMaterial } from "../components/material/sky";
 import { TransitionMaterial } from "../components/material/wipeTransition";
-import { OrbitControls, useFBO } from "@react-three/drei";
+import { Environment, useFBO } from "@react-three/drei";
 import { GridTransitionMaterial } from "../components/material/gridTransition";
 import { CheckboardTransitionMaterial } from "../components/material/checkboardTransittion";
+import ModeSlider from "../components/ModeSlider";
 
 extend({ SkyShaderMaterial, GroundShaderMaterial, GroundPrideShaderMaterial, TransitionMaterial, GridTransitionMaterial, CheckboardTransitionMaterial });
 
@@ -26,8 +27,8 @@ declare module '@react-three/fiber' {
 };
 
 export function Component() {
-    const [mode, setMode] = useState<keyof typeof MODE_CONFIG>(DEFAULT_MODE)
-    const [prevMode, setPrevMode] = useState<keyof typeof MODE_CONFIG>(DEFAULT_MODE)
+    const [mode, setMode] = useState<keyof typeof MODE_CONFIG>(MODES[0])
+    const [prevMode, setPrevMode] = useState<keyof typeof MODE_CONFIG>(MODES[1])
     const { camera, } = useThree()
 
     const renderedScene1 = useRef<THREE.Group>(null);
@@ -55,6 +56,8 @@ export function Component() {
                 renderedScene2.current.visible = false;
 
                 gl.setRenderTarget(renderTarget);
+
+                renderMaterial.current.uDirection = MODE_CONFIG[mode].index > MODE_CONFIG[prevMode].index ? -1 : 0
 
                 renderMaterial.current.uProgress = THREE.MathUtils.lerp(
                     renderMaterial.current.uProgress,
@@ -85,6 +88,7 @@ export function Component() {
     useEffect(() => {
         if (camera instanceof THREE.PerspectiveCamera) {
             camera.position.set(0, 0, 1)
+            camera.rotation.set(-0.3, 0, 0)
         }
     }, [camera])
 
@@ -98,9 +102,9 @@ export function Component() {
 
     return (
         <>
-            <OrbitControls />
             <ambientLight intensity={100} position={[0, 0.85, 0]} />
             <directionalLight intensity={10} position={[1, 1, 1]} />
+            <Environment preset="city" />
             <mesh ref={renderMesh} position={[0, 0, 0]}>
                 <planeGeometry args={[2, 2]} />
                 {/* @ts-ignore */}
@@ -114,6 +118,7 @@ export function Component() {
                     toneMapped={false}
                 />
             </mesh>
+            <ModeSlider mode={mode} prevMode={prevMode} scale={0.05} position={[0, 0.5, -0.5]} rotation={[0, 0, 0]} />
             <Background mode={prevMode} ref={renderedScene1} visible={false} />
             <Background mode={mode} ref={renderedScene2} />
             <ImmersiveSessionOrigin position={[0, -1.5, 1]}>
@@ -159,7 +164,7 @@ export const Background = forwardRef<THREE.Group, { mode: keyof typeof MODE_CONF
 
 export function Ground({ shader, mode, }: { shader: RefObject<THREE.ShaderMaterial>, mode: keyof typeof MODE_CONFIG }) {
     return (
-        <mesh position={[0, -0.5, 1]} rotation={[-Math.PI / 2, 0, 0]}
+        <mesh position={[0, -1, 1]} rotation={[-Math.PI / 2, 0, 0]}
         >
             <planeGeometry args={[30, 30]} />
             {/* @ts-ignore */}

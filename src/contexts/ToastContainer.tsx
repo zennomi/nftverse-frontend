@@ -32,8 +32,6 @@ export default function ToastContainer({ children }: { children: React.ReactNode
         setToasts(prev => [...prev, newToast as Toast])
     }
 
-    console.log(toasts)
-
     useInterval(() => {
         setToasts(prev => {
             const newToasts = prev.filter(t => t.closeAt >= new Date())
