@@ -1,9 +1,8 @@
-import { GroupProps, MaterialNode, extend, useFrame, useThree } from "@react-three/fiber";
-import { RefObject, forwardRef, useEffect, useRef, useState } from "react";
+import { GroupProps, MaterialNode, ThreeEvent, extend, useFrame, useThree } from "@react-three/fiber";
+import { RefObject, forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three"
 import { Controllers } from "@coconut-xr/natuerlich/defaults";
 import { ImmersiveSessionOrigin } from "@coconut-xr/natuerlich/react";
-import { useControls } from "leva";
 import { MODES, MODE_CONFIG } from "../configs/mode";
 import { GroundPrideShaderMaterial, GroundShaderMaterial } from "../components/material/ground";
 import { SkyShaderMaterial } from "../components/material/sky";
@@ -27,8 +26,8 @@ declare module '@react-three/fiber' {
 };
 
 export function Component() {
-    const [mode, setMode] = useState<keyof typeof MODE_CONFIG>(MODES[0])
-    const [prevMode, setPrevMode] = useState<keyof typeof MODE_CONFIG>(MODES[1])
+    const [mode, setMode] = useState<number>(0)
+    const [prevMode, setPrevMode] = useState<number>(1)
     const { camera, } = useThree()
 
     const renderedScene1 = useRef<THREE.Group>(null);
@@ -40,9 +39,13 @@ export function Component() {
     const renderMaterial = useRef<THREE.ShaderMaterial>(null);
     const renderMesh = useRef<THREE.Mesh>(null)
 
-    useControls({
-        mode: { options: MODES, value: mode, onChange: (val) => { setMode((mode) => { setPrevMode(mode); return val }) } },
-    })
+    const handleSliderWheel: (event: ThreeEvent<WheelEvent>) => void = useCallback((e) => {
+        const direction = e.deltaY > 0 ? 1 : -1
+        if (mode >= MODES.length - 1 && direction > 0) return;
+        if (mode <= 0 && direction < 0) return;
+
+        setMode((mode) => { setPrevMode(mode); return mode + direction })
+    }, [mode])
 
     useFrame(({ gl, scene, clock, camera, viewport }, delta) => {
         if (renderMaterial.current) {
@@ -57,7 +60,7 @@ export function Component() {
 
                 gl.setRenderTarget(renderTarget);
 
-                renderMaterial.current.uDirection = MODE_CONFIG[mode].index > MODE_CONFIG[prevMode].index ? -1 : 0
+                renderMaterial.current.uDirection = mode > prevMode ? -1 : 0
 
                 renderMaterial.current.uProgress = THREE.MathUtils.lerp(
                     renderMaterial.current.uProgress,
@@ -118,9 +121,11 @@ export function Component() {
                     toneMapped={false}
                 />
             </mesh>
-            <ModeSlider mode={mode} prevMode={prevMode} scale={0.05} position={[0, 0.5, -0.5]} rotation={[0, 0, 0]} />
-            <Background mode={prevMode} ref={renderedScene1} visible={false} />
-            <Background mode={mode} ref={renderedScene2} />
+            <ModeSlider mode={MODES[mode]} prevMode={MODES[prevMode]} scale={0.05} position={[0, 0.5, -0.5]} rotation={[0, 0, 0]}
+                onWheel={handleSliderWheel}
+            />
+            <Background mode={MODES[prevMode]} ref={renderedScene1} visible={false} />
+            <Background mode={MODES[mode]} ref={renderedScene2} />
             <ImmersiveSessionOrigin position={[0, -1.5, 1]}>
                 <Controllers />
             </ImmersiveSessionOrigin>

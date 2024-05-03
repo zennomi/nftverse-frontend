@@ -98,7 +98,7 @@ export default function ModeSlider({ mode, prevMode, ...props }: GroupProps & { 
                     textCamera.position.x - 0.23 < text.x ? 0 : (textCamera.position.x - 0.23 - text.x) / text.width
                     :
                     textCamera.position.x + 0.23 > text.x + text.width ? 1 : (textCamera.position.x + 0.23 - text.x) / text.width
-                textCamera.position.x = THREE.MathUtils.lerp(textCamera.position.x, text.center, delta)
+                textCamera.position.x = THREE.MathUtils.lerp(textCamera.position.x, text.center, delta * 4)
                 if (text.mesh.material instanceof Array) {
                     text.mesh.material[1].uniforms.uProgress.value = progress
                     text.mesh.material[1].uniforms.uDirection.value = direction
