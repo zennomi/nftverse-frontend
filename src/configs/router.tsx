@@ -1,8 +1,12 @@
-import { createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter } from "react-router-dom";
 import XRLayout from "../layouts/XRLayout";
 import PhysicsLayout from "../layouts/Physics";
 
 const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <Navigate to="/xr/physics/home" />
+    },
     {
         path: "/test2",
         lazy: () => import("../pages/Test2")
@@ -12,10 +16,6 @@ const router = createBrowserRouter([
         element: <XRLayout />,
         children: [
             {
-                path: "/xr/home",
-                lazy: () => import("../pages/Home"),
-            },
-            {
                 path: "/xr/test",
                 lazy: () => import("../pages/Test")
             },
@@ -23,6 +23,10 @@ const router = createBrowserRouter([
                 path: "/xr/physics",
                 element: <PhysicsLayout />,
                 children: [
+                    {
+                        path: "/xr/physics/home",
+                        lazy: () => import("../pages/Home"),
+                    },
                     {
                         path: "/xr/physics/collection",
                         lazy: () => import("../pages/Collection")

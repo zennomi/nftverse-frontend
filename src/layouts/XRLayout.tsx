@@ -1,8 +1,7 @@
 import '../App.css'
-import { KeyboardControls, } from '@react-three/drei'
+import { Environment, KeyboardControls, } from '@react-three/drei'
 import { XRCanvas } from '@coconut-xr/natuerlich/defaults';
 
-import * as THREE from "three"
 import { Leva } from 'leva';
 import { MouseEventHandler } from 'react';
 import { useAppContext } from '../contexts/AppProvider';
@@ -10,7 +9,7 @@ import { Outlet } from 'react-router-dom';
 import EnterVRButton from '../components/EnterVRButton';
 
 function XRLayout() {
-    const { toggleMainMenu } = useAppContext()
+    const { toggleMainMenu, evnPreset } = useAppContext()
     const handleRightClick: MouseEventHandler<HTMLDivElement> = (event) => {
         event.preventDefault()
         if (event.button === 2) {
@@ -36,14 +35,11 @@ function XRLayout() {
                     if (name === "menu" && pressed) toggleMainMenu()
                 }}
             >
-                <XRCanvas shadows camera={{ position: [0, 0, 5], rotation: [0, Math.PI / 2, 0], fov: 75 }}
-                    onCreated={({ gl }) => {
-                        gl.setClearColor(0xff0000, 0)
-                    }}
-                    gl={{ antialias: true, toneMapping: THREE.NoToneMapping }}
-                    linear
-                // flat
-                >
+                <XRCanvas shadows camera={{ position: [0, 0, 5], rotation: [0, Math.PI / 2, 0], fov: 75 }}>
+                    {
+                        evnPreset &&
+                        <Environment preset={evnPreset} />
+                    }
                     <Outlet />
                 </XRCanvas>
             </KeyboardControls>

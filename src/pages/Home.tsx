@@ -1,256 +1,271 @@
-import { GroupProps, MaterialNode, ThreeEvent, extend, useFrame, useThree } from "@react-three/fiber";
-import { RefObject, forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { Center, Float, GradientTexture, Sparkles, Stats, Text3D } from "@react-three/drei";
+import { useEffect, useState } from "react";
+import Player from "../components/Player";
+import { Store } from "../models/Store";
+import { RigidBody } from "@react-three/rapier";
+import { useAppContext } from "../contexts/AppProvider";
+import { Button } from "../components/default/button";
+import { Fullscreen, GlassMaterial, Root, Text } from "@react-three/uikit";
+import { BrickWall, CarFront, Gamepad2, LayoutGrid, PersonStanding } from "@react-three/uikit-lucide";
+import { Card } from "../components/default/card";
+import { Loading } from "../components/apfel/loading";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three"
-import { Controllers } from "@coconut-xr/natuerlich/defaults";
-import { ImmersiveSessionOrigin } from "@coconut-xr/natuerlich/react";
-import { MODES, MODE_CONFIG } from "../configs/mode";
-import { GroundPrideShaderMaterial, GroundShaderMaterial } from "../components/material/ground";
-import { SkyShaderMaterial } from "../components/material/sky";
-import { TransitionMaterial } from "../components/material/wipeTransition";
-import { Environment, useFBO } from "@react-three/drei";
-import { GridTransitionMaterial } from "../components/material/gridTransition";
-import { CheckboardTransitionMaterial } from "../components/material/checkboardTransittion";
-import ModeSlider from "../components/ModeSlider";
+import { useCountdown } from "usehooks-ts";
+import { useNavigate } from "react-router-dom";
 
-extend({ SkyShaderMaterial, GroundShaderMaterial, GroundPrideShaderMaterial, TransitionMaterial, GridTransitionMaterial, CheckboardTransitionMaterial });
-
-declare module '@react-three/fiber' {
-    interface ThreeElements {
-        skyShaderMaterial: MaterialNode<THREE.Material, typeof SkyShaderMaterial>,
-        groundShaderMaterial: MaterialNode<THREE.Material, typeof GroundShaderMaterial>,
-        groundPrideShaderMaterial: MaterialNode<THREE.Material, typeof GroundPrideShaderMaterial>,
-        transitionMaterial: MaterialNode<THREE.Material, typeof TransitionMaterial>,
-        gridTransitionMaterial: MaterialNode<THREE.Material, typeof GridTransitionMaterial>,
-        checkboardTransitionMaterial: MaterialNode<THREE.Material, typeof CheckboardTransitionMaterial>,
-    }
-};
+const cameraPosition = new THREE.Vector3()
 
 export function Component() {
-    const [mode, setMode] = useState<number>(0)
-    const [prevMode, setPrevMode] = useState<number>(1)
-    const { camera, } = useThree()
+    const { setEvnPreset } = useAppContext()
+    const [category, setCategory] = useState<string | null>(null)
+    const [count, { startCountdown, stopCountdown, resetCountdown }] =
+        useCountdown({
+            countStart: 5,
+            intervalMs: 1000,
+        })
+    const navigate = useNavigate()
 
-    const renderedScene1 = useRef<THREE.Group>(null);
-    const renderedScene2 = useRef<THREE.Group>(null);
-    // const exampleScene = useRef();
-
-    const renderTarget = useFBO();
-    const renderTarget2 = useFBO();
-    const renderMaterial = useRef<THREE.ShaderMaterial>(null);
-    const renderMesh = useRef<THREE.Mesh>(null)
-
-    const handleSliderWheel: (event: ThreeEvent<WheelEvent>) => void = useCallback((e) => {
-        const direction = e.deltaY > 0 ? 1 : -1
-        if (mode >= MODES.length - 1 && direction > 0) return;
-        if (mode <= 0 && direction < 0) return;
-
-        setMode((mode) => { setPrevMode(mode); return mode + direction })
-    }, [mode])
-
-    useFrame(({ gl, scene, clock, camera, viewport }, delta) => {
-        if (renderMaterial.current) {
-            renderMaterial.current.uTime = clock.getElapsedTime() / 2
-            renderMaterial.current.uRez = [viewport.width, viewport.height]
-        }
-        if (renderedScene1.current && renderedScene2.current && renderMaterial.current && renderMesh.current) {
-            if (renderMaterial.current.uProgress < 0.9999) {
-                renderMesh.current.visible = true;
-                renderedScene1.current.visible = true;
-                renderedScene2.current.visible = false;
-
-                gl.setRenderTarget(renderTarget);
-
-                renderMaterial.current.uDirection = mode > prevMode ? -1 : 0
-
-                renderMaterial.current.uProgress = THREE.MathUtils.lerp(
-                    renderMaterial.current.uProgress,
-                    1,
-                    delta * 4
-                );
-
-                gl.render(scene, camera);
-
-                gl.setRenderTarget(renderTarget2);
-
-                renderedScene1.current.visible = false;
-                renderedScene2.current.visible = true;
-
-                gl.render(scene, camera);
-                renderedScene2.current.visible = false;
-
-                gl.setRenderTarget(null);
-            } else {
-                renderedScene1.current.visible = false;
-                renderedScene2.current.visible = true;
-                renderMesh.current.visible = true;
-            }
-
+    useFrame(({ camera }) => {
+        camera.getWorldPosition(cameraPosition)
+        if (cameraPosition.distanceTo(new THREE.Vector3(2.35, 0.9, -1.2)) < 2) {
+            if (category !== "art") setCategory("art")
+        } else if (cameraPosition.distanceTo(new THREE.Vector3(-3.35, 0.9, -1.2)) < 2) {
+            if (category !== "car") setCategory("car")
+        } else {
+            if (!!category) setCategory(null)
         }
     })
 
     useEffect(() => {
-        if (camera instanceof THREE.PerspectiveCamera) {
-            camera.position.set(0, 0, 1)
-            camera.rotation.set(-0.3, 0, 0)
-        }
-    }, [camera])
+        setEvnPreset("dawn")
+    }, [])
 
     useEffect(() => {
-        if (mode === prevMode) {
-            return;
+        if (category) {
+            resetCountdown()
+            startCountdown()
+        } else {
+            stopCountdown()
+            resetCountdown()
         }
+    }, [category])
 
-        if (renderMaterial.current) renderMaterial.current.uProgress = 0;
-    }, [mode, prevMode, renderMaterial]);
+    useEffect(() => {
+        if (!!category && count === 0) {
+            navigate("/xr/physics/collection")
+        }
+    }, [category, count])
 
     return (
         <>
-            <ambientLight intensity={100} position={[0, 0.85, 0]} />
-            <directionalLight intensity={10} position={[1, 1, 1]} />
-            <Environment preset="city" />
-            <mesh ref={renderMesh} position={[0, 0, 0]}>
-                <planeGeometry args={[2, 2]} />
-                {/* @ts-ignore */}
-                <gridTransitionMaterial
-                    ref={renderMaterial}
-                    transparent={false}
-                    depthTest={false}
-                    depthWrite={false}
-                    uBackgroundTexture0={renderTarget.texture}
-                    uBackgroundTexture1={renderTarget2.texture}
-                    toneMapped={false}
-                />
-            </mesh>
-            <ModeSlider mode={MODES[mode]} prevMode={MODES[prevMode]} scale={0.05} position={[0, 0.5, -0.5]} rotation={[0, 0, 0]}
-                onWheel={handleSliderWheel}
-            />
-            <Background mode={MODES[prevMode]} ref={renderedScene1} visible={false} />
-            <Background mode={MODES[mode]} ref={renderedScene2} />
-            <ImmersiveSessionOrigin position={[0, -1.5, 1]}>
-                <Controllers />
-            </ImmersiveSessionOrigin>
+            <Stats />
+            <ambientLight intensity={1} color="#BBBBBB" />
+            <directionalLight position={[2.5, 5, 5]} color="#FFFFFF" intensity={0.6} castShadow />
+            <RigidBody mass={1} type="fixed" position={[0, 0.1, 0]} rotation={[0, Math.PI, 0]} colliders={"trimesh"}>
+                <Store receiveShadow />
+            </RigidBody>
+            <group position={[2.35, 0.9, -1.2]}>
+                <Center >
+                    <Text3D
+                        font={"/fonts/PoetsenOne_Regular.json"}
+                        letterSpacing={-0.05}
+                        curveSegments={32}
+                        bevelEnabled
+                        bevelSize={0.01}
+                        bevelThickness={0.01}
+                        size={0.4}
+                        receiveShadow
+                        castShadow
+                    >
+                        ART
+                        {/* <meshNormalMaterial /> */}
+                        <meshPhysicalMaterial>
+                            <GradientTexture
+                                stops={[0, 0.2, 0.5, 1]} // As many stops as you want
+                                colors={['aqua', 'hotpink', 'hotpink', 'yellow']} // Colors need to match the number of stops
+                                innerCircleRadius={0} // Optional, the radius of the inner circle of the gradient, default = 0
+                                outerCircleRadius={'auto'} // Optional, the radius of the outer circle of the gradient, default = auto
+                            />
+                        </meshPhysicalMaterial>
+                    </Text3D>
+                </Center>
+                <mesh position={[0, -0.35, 0.5]} rotation={[-Math.PI / 2, 0, 0]} scale={0.2}>
+                    <Root>
+                        <Button backgroundColor={'hotpink'} panelMaterialClass={GlassMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} gap={7}>
+                            <LayoutGrid color="white" />
+                            <Text color="white">Enter Art Gallery</Text>
+                        </Button>
+                    </Root>
+                </mesh>
+            </group>
+            <group position={[-3.35, 0.9, -1.2]}>
+                <Center >
+                    <Text3D
+                        font={"/fonts/AMCAP_Eternal_Regular.json"}
+                        letterSpacing={-0.05}
+                        curveSegments={32}
+                        bevelEnabled
+                        bevelSize={0.01}
+                        bevelThickness={0.01}
+                        size={0.4}
+                        receiveShadow
+                        castShadow
+                    >
+                        CAR
+                        <meshStandardMaterial>
+                            <GradientTexture
+                                stops={[0, 0.2, 0.5, 1]} // As many stops as you want
+                                colors={['#2b2d42', '#8d99ae', '#8d99ae', '#edf2f4']} // Colors need to match the number of stops
+                                innerCircleRadius={0} // Optional, the radius of the inner circle of the gradient, default = 0
+                                outerCircleRadius={'auto'} // Optional, the radius of the outer circle of the gradient, default = auto
+                            />
+                        </meshStandardMaterial>
+                    </Text3D>
+                </Center>
+                <mesh position={[0, -0.35, 0.5]} rotation={[-Math.PI / 2, 0, 0]} scale={0.2}>
+                    <Root>
+                        <Button backgroundColor={'#2b2d42'} panelMaterialClass={GlassMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} gap={7}>
+                            <CarFront color="white" />
+                            <Text color="white">Enter Car Showroom</Text>
+                        </Button>
+                    </Root>
+                </mesh>
+            </group>
+            <group position={[-2.75, 0.9, 5.3]} rotation={[0, Math.PI, 0]}>
+                <Center >
+                    <Text3D
+                        font={"/fonts/Inter_Bold.json"}
+                        letterSpacing={-0.05}
+                        curveSegments={32}
+                        bevelEnabled
+                        bevelSize={0.01}
+                        bevelThickness={0.01}
+                        size={0.4}
+                        receiveShadow
+                        castShadow
+                    >
+                        GAME
+                        <meshBasicMaterial>
+                            <GradientTexture
+                                stops={[0, 0.2, 0.5, 1]} // As many stops as you want
+                                colors={['#fe4a49', '#fed766', '#fed766', '#009fb7']} // Colors need to match the number of stops
+                                innerCircleRadius={0} // Optional, the radius of the inner circle of the gradient, default = 0
+                                outerCircleRadius={'auto'} // Optional, the radius of the outer circle of the gradient, default = auto
+                            />
+                        </meshBasicMaterial>
+                    </Text3D>
+                </Center>
+                <mesh position={[0, -0.35, 0.5]} rotation={[-Math.PI / 2, 0, 0]} scale={0.2}>
+                    <Root>
+                        <Button backgroundColor={'#fed766'} panelMaterialClass={GlassMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} gap={7}>
+                            <Gamepad2 color="white" />
+                            <Text color="white">Enter Game Store</Text>
+                        </Button>
+                    </Root>
+                </mesh>
+            </group>
+            <group position={[0, 0.9, 5.3]} rotation={[0, Math.PI, 0]}>
+                <Center >
+                    <Text3D
+                        font={"/fonts/Minecraft_Ten_Regular.json"}
+                        curveSegments={32}
+                        bevelEnabled
+                        bevelSize={0.01}
+                        bevelThickness={0.01}
+                        size={0.4}
+                        receiveShadow
+                        castShadow
+                    >
+                        VOXEL
+                        <meshBasicMaterial>
+                            <GradientTexture
+                                stops={[0, 0.2, 0.5, 1]} // As many stops as you want
+                                colors={['#386641', '#6a994e', '#6a994e', '#a7c957']} // Colors need to match the number of stops
+                                innerCircleRadius={0} // Optional, the radius of the inner circle of the gradient, default = 0
+                                outerCircleRadius={'auto'} // Optional, the radius of the outer circle of the gradient, default = auto
+                            />
+                        </meshBasicMaterial>
+                    </Text3D>
+                </Center>
+                <mesh position={[0, -0.35, 0.5]} rotation={[-Math.PI / 2, 0, 0]} scale={0.2}>
+                    <Root>
+                        <Button backgroundColor={'#386641'} panelMaterialClass={GlassMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} gap={7}>
+                            <BrickWall color="white" />
+                            <Text color="white">Enter Minecraft</Text>
+                        </Button>
+                    </Root>
+                </mesh>
+            </group>
+            <group position={[2.45, 0.9, 5.3]} rotation={[0, Math.PI, 0]}>
+                <Center >
+                    <Text3D
+                        font={"/fonts/Inter_Bold.json"}
+                        letterSpacing={-0.05}
+                        curveSegments={32}
+                        bevelEnabled
+                        bevelSize={0.01}
+                        bevelThickness={0.01}
+                        size={0.4}
+                        receiveShadow
+                        castShadow
+                    >
+                        AVATAR
+                        <meshBasicMaterial>
+                            <GradientTexture
+                                stops={[0, 0.2, 0.5, 1]} // As many stops as you want
+                                colors={['#006ba6', '#0496ff', '#0496ff', '#ffbc42']} // Colors need to match the number of stops
+                                innerCircleRadius={0} // Optional, the radius of the inner circle of the gradient, default = 0
+                                outerCircleRadius={'auto'} // Optional, the radius of the outer circle of the gradient, default = auto
+                            />
+                        </meshBasicMaterial>
+                    </Text3D>
+                </Center>
+                <Sparkles count={50} scale={1 * 2} size={6} speed={0.4} />
+                <mesh position={[0, -0.35, 0.5]} rotation={[-Math.PI / 2, 0, 0]} scale={0.2}>
+                    <Root>
+                        <Button backgroundColor={'#0496ff'} panelMaterialClass={GlassMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} gap={7}>
+                            <PersonStanding color="white" />
+                            <Text color="white">Enter Avatar Store</Text>
+                        </Button>
+                    </Root>
+                </mesh>
+            </group>
+            <Float rotationIntensity={0.5} floatingRange={[-0.05, 0.05]}>
+                <Center position={[8, 2.5, 2]} rotation={[0, -Math.PI / 2, 0]}>
+                    <Text3D
+                        font={"/fonts/Inter_Bold.json"}
+                        curveSegments={32}
+                        bevelEnabled
+                        bevelSize={0.04}
+                        bevelThickness={0.1}
+                        height={0.5}
+                        lineHeight={0.5}
+                        letterSpacing={-0.06}
+                        size={1}
+                    >
+                        NFTVERSE
+                        <meshPhysicalMaterial>
+                            <GradientTexture
+                                stops={[0, 0.2, 0.5, 1]} // As many stops as you want
+                                colors={['aqua', 'hotpink', 'hotpink', 'yellow']} // Colors need to match the number of stops
+                                innerCircleRadius={0} // Optional, the radius of the inner circle of the gradient, default = 0
+                                outerCircleRadius={'auto'} // Optional, the radius of the outer circle of the gradient, default = auto
+                            />
+                        </meshPhysicalMaterial>
+                    </Text3D>
+                </Center>
+            </Float>
+            <Fullscreen justifyContent="center" alignContent="center" alignItems="center">
+                {
+                    category &&
+                    <Card panelMaterialClass={GlassMaterial} borderWidth={4} borderOpacity={0} padding={16} flexDirection="column" gapColumn={16} justifyContent="center" alignContent="center" alignItems="center">
+                        <Loading />
+                        <Text>Enter {category.toUpperCase()} category in {count.toString()}s...</Text>
+                    </Card>
+                }
+            </Fullscreen>
+            <Player initial={[0, 1, 0]} />
         </>
-    )
-}
-
-export const Background = forwardRef<THREE.Group, { mode: keyof typeof MODE_CONFIG } & GroupProps>(function ({ mode, ...props }, ref) {
-    const skyShader = useRef<THREE.ShaderMaterial>(null)
-    const groundShader = useRef<THREE.ShaderMaterial>(null)
-
-    useFrame(({ camera, clock, },) => {
-        if (skyShader.current) {
-            // update uniform variable
-            const _MAT4_1 = new THREE.Matrix4();
-
-            _MAT4_1.copy(camera.modelViewMatrix)
-
-            _MAT4_1.elements[12] = _MAT4_1.elements[13] = _MAT4_1.elements[14] = 0;
-
-            _MAT4_1.multiply(camera.projectionMatrix)
-
-            _MAT4_1.invert()
-
-            skyShader.current.uTime = clock.getElapsedTime() / 2
-            skyShader.current.uViewDirProjInverse = _MAT4_1
-        }
-
-        if (groundShader.current) {
-            groundShader.current.uTime = clock.getElapsedTime() / 2
-        }
-    })
-
-    return (
-        <group {...props} ref={ref} >
-            <Ground shader={groundShader} mode={mode} />
-            <SkyBox shader={skyShader} mode={mode} />
-        </group>
-    )
-})
-
-export function Ground({ shader, mode, }: { shader: RefObject<THREE.ShaderMaterial>, mode: keyof typeof MODE_CONFIG }) {
-    return (
-        <mesh position={[0, -1, 1]} rotation={[-Math.PI / 2, 0, 0]}
-        >
-            <planeGeometry args={[30, 30]} />
-            {/* @ts-ignore */}
-            {
-                mode === "pride" ?
-                    <groundPrideShaderMaterial
-                        key={GroundPrideShaderMaterial.key}
-                        ref={shader}
-                        uGrid={0}
-                        uFadeDistance={0.15}
-                        uProgressSpace={1}
-                        uProgressDance={1}
-                        uProgressMulti={0}
-                        uProgressBall={0}
-                        uProgressLoading={0}
-                        glslVersion={THREE.GLSL3}
-                        transparent={true}
-                        needsUpdate={true}
-                        uniformsNeedUpdate={true}
-                        depthTest
-                        depthWrite
-                        uColor={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color))}
-                        uColorNight={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorNight))}
-                        uColorTiles={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorTiles))}
-                    />
-                    :
-                    <groundShaderMaterial
-                        key={GroundShaderMaterial.key}
-                        ref={shader}
-                        uGrid={0}
-                        uFadeDistance={0.15}
-                        uProgressSpace={1}
-                        uProgressDance={1}
-                        uProgressMulti={0}
-                        uProgressBall={0}
-                        uProgressLoading={0}
-                        glslVersion={THREE.GLSL3}
-                        transparent={true}
-                        needsUpdate={true}
-                        uniformsNeedUpdate={true}
-                        depthTest
-                        depthWrite
-                        uColor={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color))}
-                        uColorNight={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorNight))}
-                        uColorTiles={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorTiles))}
-                    />
-            }
-        </mesh>
-    )
-}
-
-export function SkyBox({ shader, mode, }: { shader: RefObject<THREE.ShaderMaterial>, mode: keyof typeof MODE_CONFIG }) {
-    const VERTICES = [-1, 1, 0, -1, -1, 0, 1, -1, 0, 1, 1, 0];
-    const INDICES = [0, 1, 2, 0, 2, 3];
-    const UVS = [0, 1, 0, 0, 1, 0, 1, 1];
-    const gemoetry = useRef<THREE.BufferGeometry>(null)
-
-
-    useEffect(() => {
-        if (gemoetry.current) {
-            gemoetry.current.setIndex(Array.from(INDICES))
-        }
-    }, [])
-
-    return (
-        <mesh position={[0, 0, 0]}>
-            <bufferGeometry
-                ref={gemoetry}
-                attributes={{
-                    position: new THREE.BufferAttribute(new Float32Array(VERTICES), 3),
-                    uv: new THREE.BufferAttribute(new Float32Array(UVS), 2),
-                }}
-            />
-            {/* @ts-ignore */}
-            <skyShaderMaterial
-                ref={shader}
-                uColor0={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color0))}
-                uColor1={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].Color1))}
-                uColorNight0={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorNight))}
-                uColorNight1={new THREE.Color(new THREE.Color(...MODE_CONFIG[mode].ColorTiles))}
-            />
-        </mesh>
     )
 }

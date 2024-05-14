@@ -90,7 +90,7 @@ export default function NFT(props: { position?: Vector3, scale?: number, rotatio
                             <IconButton size="md" platter display={near ? 'flex' : 'none'}>
                                 <SVG url="/icons/information.svg" depth={3} />
                             </IconButton>
-                            <IconButton size="md" platter display={near ? 'flex' : 'none'} onClick={() => { navigate("/nft") }}>
+                            <IconButton size="md" platter display={near ? 'flex' : 'none'} onClick={() => { navigate("/xr/physics/nft") }}>
                                 <SVG url="/icons/eye.svg" depth={3} />
                             </IconButton>
                         </Glass>
