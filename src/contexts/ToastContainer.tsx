@@ -45,7 +45,7 @@ export default function ToastContainer({ children }: { children: React.ReactNode
                 <Container flexGrow={1} width={"100%"} paddingBottom={4} flexDirection="column" justifyContent="flex-end" alignContent="center" alignItems="center" gap={3}>
                     {
                         toasts.map((noti => (
-                            <Card padding={4} gap={4} alignItems="center">
+                            <Card key={noti.closeAt.valueOf()} padding={4} gap={4} alignItems="center">
                                 <AlertCircle />
                                 <Text>{noti.text}</Text>
                             </Card>

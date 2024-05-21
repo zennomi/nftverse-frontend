@@ -2,6 +2,7 @@ import React, { Dispatch, SetStateAction, createContext, useCallback, useContext
 import { AES, enc } from "crypto-js";
 import { useLocalStorage } from 'usehooks-ts';
 import { Wallet } from "ethers";
+import { ListingTokenEvent } from "../types/graphql";
 
 const WALLET_DATA_KEY = "wallet-data"
 
@@ -13,6 +14,9 @@ type WalletValueType = {
     importNewWallet: (pw: string) => void,
     currentIndex: number,
     setCurrentIndex: Dispatch<SetStateAction<number>>,
+    cart: ListingTokenEvent[],
+    addToCart: (t: ListingTokenEvent) => void,
+    removeFromCart: (t: string) => void,
 }
 
 export const WalletContext = createContext<WalletValueType>({
@@ -22,7 +26,10 @@ export const WalletContext = createContext<WalletValueType>({
     deceryptPrivateKeys: (_: string) => false,
     importNewWallet: (_: string) => { },
     currentIndex: -1,
-    setCurrentIndex: () => { }
+    setCurrentIndex: () => { },
+    cart: [],
+    addToCart: (_: ListingTokenEvent) => { },
+    removeFromCart: (_: string) => { },
 });
 
 export const useWalletContext = () => useContext(WalletContext)
@@ -32,6 +39,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const [encryptedData, setEncryptedData] = useLocalStorage(WALLET_DATA_KEY, "")
     const [password, setPassword] = useState("")
     const [currentIndex, setCurrentIndex] = useState(-1)
+    const [cart, setCart] = useState<ListingTokenEvent[]>([])
 
     const deceryptPrivateKeys = useCallback((_password: string) => {
         if (!encryptedData) {
@@ -63,6 +71,21 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         setCurrentIndex(newPrivateKeys.length - 1)
     }, [privateKeys, password])
 
+    const addToCart = useCallback((listingToken: ListingTokenEvent) => {
+        setCart(prev => {
+            if (!prev.some(i => i.token.id === listingToken.token.id)) {
+                return [...prev, listingToken]
+            }
+            return prev
+        })
+    }, [setCart])
+
+    const removeFromCart = useCallback((tokenId: string) => {
+        setCart(prev => {
+            return prev.filter(t => t.token.id !== tokenId)
+        })
+    }, [setCart])
+
     const memoizedValue = useMemo(
         () => ({
             privateKeys,
@@ -72,8 +95,22 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             importNewWallet,
             currentIndex,
             setCurrentIndex,
+            cart,
+            addToCart,
+            removeFromCart,
         }),
-        [privateKeys, encryptedData, deceryptPrivateKeys, password, importNewWallet, currentIndex, setCurrentIndex]
+        [
+            privateKeys,
+            encryptedData,
+            deceryptPrivateKeys,
+            password,
+            importNewWallet,
+            currentIndex,
+            setCurrentIndex,
+            cart,
+            addToCart,
+            removeFromCart,
+        ]
     );
 
     // init loader

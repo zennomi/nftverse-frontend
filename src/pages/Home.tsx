@@ -5,7 +5,7 @@ import { Store } from "../models/Store";
 import { RigidBody } from "@react-three/rapier";
 import { useAppContext } from "../contexts/AppProvider";
 import { Button } from "../components/default/button";
-import { Fullscreen, GlassMaterial, Root, Text } from "@react-three/uikit";
+import { GlassMaterial, Root, Text } from "@react-three/uikit";
 import { BrickWall, CarFront, Gamepad2, LayoutGrid, PersonStanding } from "@react-three/uikit-lucide";
 import { Card } from "../components/default/card";
 import { Loading } from "../components/apfel/loading";
@@ -13,6 +13,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three"
 import { useCountdown } from "usehooks-ts";
 import { useNavigate } from "react-router-dom";
+import { Fullscreen } from "../components/override/Fullscreen";
 
 const cameraPosition = new THREE.Vector3()
 

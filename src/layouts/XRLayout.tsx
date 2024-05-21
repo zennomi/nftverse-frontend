@@ -9,7 +9,7 @@ import { Outlet } from 'react-router-dom';
 import EnterVRButton from '../components/EnterVRButton';
 
 function XRLayout() {
-    const { toggleMainMenu, evnPreset } = useAppContext()
+    const { toggleMainMenu, evnPreset, setOpenMainMenu } = useAppContext()
     const handleRightClick: MouseEventHandler<HTMLDivElement> = (event) => {
         event.preventDefault()
         if (event.button === 2) {
@@ -29,10 +29,13 @@ function XRLayout() {
                     { name: "left", keys: ["ArrowLeft", "a", "A"] },
                     { name: "right", keys: ["ArrowRight", "d", "D"] },
                     { name: "jump", keys: ["Space"] },
-                    { name: "menu", keys: ["M", "m"] }
+                    { name: "menu", keys: ["M", "m"] },
+                    { name: "navigator", keys: ["N", "n"] },
+                    { name: "esc", keys: ["Escape"] }
                 ]}
                 onChange={(name, pressed,) => {
-                    if (name === "menu" && pressed) toggleMainMenu()
+                    if (name === "menu" && pressed) toggleMainMenu();
+                    if (name === "esc" && pressed) setOpenMainMenu(false);
                 }}
             >
                 <XRCanvas shadows camera={{ position: [0, 0, 5], rotation: [0, Math.PI / 2, 0], fov: 75 }}>
