@@ -7,7 +7,7 @@ import { Root, Text } from "@react-three/uikit";
 import { Card } from "../components/apfel/card";
 import { Button } from "../components/apfel/button";
 import { Suspense, useState } from "react";
-import LoadingScreen from "../components/LoadingScreen";
+import LoadingScreen from "../components/LoadingProgressScreen";
 
 export function Component() {
     const [started, setStarted] = useState(false)

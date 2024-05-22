@@ -17,6 +17,8 @@ type WalletValueType = {
     cart: ListingTokenEvent[],
     addToCart: (t: ListingTokenEvent) => void,
     removeFromCart: (t: string) => void,
+    wallet: Wallet | null,
+    isConnected: boolean,
 }
 
 export const WalletContext = createContext<WalletValueType>({
@@ -30,6 +32,8 @@ export const WalletContext = createContext<WalletValueType>({
     cart: [],
     addToCart: (_: ListingTokenEvent) => { },
     removeFromCart: (_: string) => { },
+    wallet: null,
+    isConnected: false,
 });
 
 export const useWalletContext = () => useContext(WalletContext)
@@ -40,6 +44,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const [password, setPassword] = useState("")
     const [currentIndex, setCurrentIndex] = useState(-1)
     const [cart, setCart] = useState<ListingTokenEvent[]>([])
+    const wallet = useMemo(() => {
+        if (currentIndex < 0) return null
+        return new Wallet(privateKeys[currentIndex])
+    }, [currentIndex, privateKeys])
+
+    const isConnected = useMemo(() => {
+        return currentIndex > 0
+    }, [currentIndex])
 
     const deceryptPrivateKeys = useCallback((_password: string) => {
         if (!encryptedData) {
@@ -98,6 +110,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             cart,
             addToCart,
             removeFromCart,
+            wallet,
+            isConnected,
         }),
         [
             privateKeys,
@@ -112,11 +126,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             removeFromCart,
         ]
     );
-
-    // init loader
-    // useEffect(() => {
-    //     const private
-    // }, [])
 
     return <WalletContext.Provider value={memoizedValue}>{children}</WalletContext.Provider>
 }

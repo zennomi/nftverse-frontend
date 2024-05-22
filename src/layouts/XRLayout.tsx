@@ -38,7 +38,7 @@ function XRLayout() {
                     if (name === "esc" && pressed) setOpenMainMenu(false);
                 }}
             >
-                <XRCanvas shadows camera={{ position: [0, 0, 5], rotation: [0, Math.PI / 2, 0], fov: 75 }}>
+                <XRCanvas shadows camera={{ position: [0, 0, 5], rotation: [0, Math.PI / 2, 0], fov: 75 }} gl={{ localClippingEnabled: true }}>
                     {
                         evnPreset &&
                         <Environment preset={evnPreset} />

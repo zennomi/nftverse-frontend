@@ -11,7 +11,7 @@
   height: 10px;
   border-radius: 50%;
   transform: translate3d(-50%, -50%, 0);
-  border: 2px solid white;
+  border: 2px solid black;
   z-index: 9999;
 }
 

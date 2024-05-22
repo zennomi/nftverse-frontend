@@ -5,7 +5,7 @@ import * as THREE from "three";
 
 import { useAppContext } from "../contexts/AppProvider";
 import { Card } from "../components/apfel/card";
-import { Columns3, Home, LogIn, LogOut, Package, StepBack, SwitchCamera, Wallet, X } from "@react-three/uikit-lucide";
+import { Columns3, Home, LogIn, LogOut, Package, RefreshCcw, StepBack, SwitchCamera, Wallet, X } from "@react-three/uikit-lucide";
 import { Button } from "../components/apfel/button";
 import { useEnterXR, useXR } from "@coconut-xr/natuerlich/react";
 import { Wallet as EthersWallet } from "ethers"
@@ -15,6 +15,10 @@ import WalletMenu from "./Wallet";
 import { useWalletContext } from "../contexts/WalletProvider";
 import { useNavigate } from "react-router-dom";
 import { CartMenu } from "./CartMenu";
+import DashboardMenu from "./DashboardMenu";
+import { useApolloClient } from "@apollo/client";
+import { mutate } from "swr";
+import { useToastContext } from "../contexts/ToastContainer";
 
 const position = new THREE.Vector3()
 const direction = new THREE.Vector3()
@@ -24,7 +28,7 @@ const HIDE_POSITION = new THREE.Vector3(0, -10, 0)
 export default function MainMenu() {
     const camera = useThree(state => state.camera)
     const ref = useRef<THREE.Mesh>(null)
-    const { openMainMenu, toggleMainMenu } = useAppContext()
+    const { openMainMenu, toggleMainMenu, setOpenMainMenu } = useAppContext()
     const { privateKeys, currentIndex } = useWalletContext()
     const [selected, setSelected] = useState("")
     const enterVR = useEnterXR("immersive-vr", sessionOptions);
@@ -34,6 +38,16 @@ export default function MainMenu() {
     const exitVR = useCallback(() => {
         session?.end().catch(console.error)
     }, [session])
+    const client = useApolloClient()
+    const { toast } = useToastContext()
+
+    const refresh = useCallback(async () => {
+        mutate(key => typeof key === "string")
+        await client.refetchQueries({
+            include: "all"
+        })
+        toast({ text: "Refreshed!" })
+    }, [client, mutate])
 
     useEffect(() => {
         if (!camera || !ref.current) return;
@@ -53,18 +67,29 @@ export default function MainMenu() {
                 <Container flexDirection="column" gap={4}>
                     {
                         selected === "" ?
-                            <Card flexDirection="row" justifyContent="space-between" gap={8} padding={16} borderRadius={4} width={500} flexWrap="wrap">
-                                <Button flexDirection="column" alignItems="center" justifyContent="center" padding={16} borderRadius={4} borderWidth={1.5} height={80} width={100} gap={4}>
-                                    <Columns3 height={20} />
-                                    <Text>Collections</Text>
-                                </Button>
+                            <Card flexDirection="row" justifyContent="space-between" gap={8} padding={16} borderRadius={4} width={400} flexWrap="wrap">
                                 <Button flexDirection="column" alignItems="center" padding={16} borderRadius={4} borderWidth={1.5} width={100} height={80} gap={4} onClick={() => navigate("/xr/physics/home")}>
                                     <Home height={20} />
-                                    <Text>Dashboard</Text>
+                                    <Text>Homepage</Text>
                                 </Button>
+                                {
+                                    currentIndex >= 0 &&
+                                    <Button flexDirection="column" alignItems="center" justifyContent="center" padding={16} borderRadius={4} borderWidth={1.5} height={80} width={100} gap={4} onClick={() => setSelected("dashboard")}>
+                                        <Columns3 height={20} />
+                                        <Text>My NFTs</Text>
+                                    </Button>
+                                }
                                 <Button flexDirection="column" alignItems="center" padding={16} borderRadius={4} borderWidth={1.5} width={100} height={80} gap={4} onClick={() => setSelected("cart")}>
                                     <Package height={20} />
                                     <Text>Cart</Text>
+                                </Button>
+                                <Button flexDirection="column" alignItems="center" padding={16} borderRadius={4} borderWidth={1.5} width={100} height={80} gap={4} onClick={() => setOpenMainMenu(false)}>
+                                    <X height={20} />
+                                    <Text>Close</Text>
+                                </Button>
+                                <Button flexDirection="column" alignItems="center" padding={16} borderRadius={4} borderWidth={1.5} width={100} height={80} gap={4} onClick={refresh}>
+                                    <RefreshCcw height={20} />
+                                    <Text>Refersh</Text>
                                 </Button>
                                 {
                                     isVR ?
@@ -78,7 +103,7 @@ export default function MainMenu() {
                                             <Text justifyContent="center">Enter VR</Text>
                                         </Button>
                                 }
-                                <Button flexDirection="column" alignItems="center" padding={16} borderRadius={4} borderWidth={1.5} flexGrow={1} gap={4} height={80}
+                                <Button flexDirection="column" alignItems="center" padding={16} borderRadius={4} borderWidth={1.5} flexGrow={1} gap={4} height={80} overflow="hidden"
                                     onClick={() => setSelected("wallet")}
                                 >
                                     {
@@ -86,7 +111,7 @@ export default function MainMenu() {
                                             <>
                                                 <SwitchCamera height={20} />
                                                 <Text justifyContent="center">Switch Wallet</Text>
-                                                <Text fontSize={14} justifyContent="center">{new EthersWallet(privateKeys[currentIndex]).address}</Text>
+                                                <Text fontSize={14} justifyContent="center" width="100%">{new EthersWallet(privateKeys[currentIndex]).address}</Text>
                                             </> : <>
                                                 <Wallet height={20} />
                                                 <Text justifyContent="center">Connect Wallet</Text>
@@ -99,8 +124,9 @@ export default function MainMenu() {
                                 :
                                 selected === "cart" ?
                                     <CartMenu />
-                                    :
-                                    <></>
+                                    : selected === "dashboard" ?
+                                        <DashboardMenu />
+                                        : <></>
                     }
                     {
                         selected !== "" &&
