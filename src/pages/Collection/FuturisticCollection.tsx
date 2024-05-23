@@ -1,26 +1,26 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three"
 import { formatUnits, isError } from "ethers"
-import Player from "../components/Player";
-import { useAppContext } from "../contexts/AppProvider";
+import Player from "../../components/Player";
+import { useAppContext } from "../../contexts/AppProvider";
 import { RigidBody } from "@react-three/rapier";
-import { ScifiGallery } from "../models/ScifiGallery";
-import { useListedTokens } from "../hooks";
-import { CollectionCategory, ListingTokenEvent } from "../types/graphql";
-import { RatioImage } from "../components/override/RatioImage";
+import { ScifiGallery } from "../../models/ScifiGallery";
+import { useListedTokens } from "../../hooks";
+import { CollectionCategory, ListingTokenEvent } from "../../types/graphql";
+import { RatioImage } from "../../components/override/RatioImage";
 import { GroupProps, Matrix4, useThree } from "@react-three/fiber";
 import { DragControls, Stats } from "@react-three/drei";
 import { Container, GlassMaterial, MetalMaterial, Root, Text } from "@react-three/uikit";
-import { Button } from "../components/default/button";
+import { Button } from "../../components/default/button";
 import { Ban, Check, Eye, Heart, PackageMinus, PackagePlus, ShoppingCart } from "@react-three/uikit-lucide";
-import { useWalletContext } from "../contexts/WalletProvider";
-import { useToastContext } from "../contexts/ToastContainer";
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/default/card";
-import { buyNFT, erc20Approve } from "../utils/ethers";
-import { getIPFSUri } from "../utils";
-import Navigator from "../components/Navigator";
+import { useWalletContext } from "../../contexts/WalletProvider";
+import { useToastContext } from "../../contexts/ToastContainer";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/default/card";
+import { buyNFT, erc20Approve } from "../../utils/ethers";
+import { getIPFSUri } from "../../utils";
+import Navigator from "../../components/Navigator";
 import { useApolloClient } from "@apollo/client";
-import LoadingScreen from "../components/LoadingScreen";
+import LoadingScreen from "../../components/LoadingScreen";
 
 const position = new THREE.Vector3()
 const direction = new THREE.Vector3()

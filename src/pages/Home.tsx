@@ -7,19 +7,19 @@ import { useAppContext } from "../contexts/AppProvider";
 import { Button } from "../components/default/button";
 import { GlassMaterial, Root, Text } from "@react-three/uikit";
 import { BrickWall, CarFront, Gamepad2, LayoutGrid, PersonStanding } from "@react-three/uikit-lucide";
-import { Card } from "../components/default/card";
-import { Loading } from "../components/apfel/loading";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three"
 import { useCountdown } from "usehooks-ts";
 import { useNavigate } from "react-router-dom";
 import { Fullscreen } from "../components/override/Fullscreen";
+import { CollectionCategory } from "../types/graphql";
+import LoadingScreen from "../components/LoadingScreen";
 
 const cameraPosition = new THREE.Vector3()
 
 export function Component() {
     const { setEvnPreset } = useAppContext()
-    const [category, setCategory] = useState<string | null>(null)
+    const [category, setCategory] = useState<CollectionCategory | null>(null)
     const [count, { startCountdown, stopCountdown, resetCountdown }] =
         useCountdown({
             countStart: 5,
@@ -30,9 +30,9 @@ export function Component() {
     useFrame(({ camera }) => {
         camera.getWorldPosition(cameraPosition)
         if (cameraPosition.distanceTo(new THREE.Vector3(2.35, 0.9, -1.2)) < 2) {
-            if (category !== "art") setCategory("art")
-        } else if (cameraPosition.distanceTo(new THREE.Vector3(-3.35, 0.9, -1.2)) < 2) {
-            if (category !== "car") setCategory("car")
+            if (category !== CollectionCategory.FUTURISTIC) setCategory(CollectionCategory.FUTURISTIC)
+            // } else if (cameraPosition.distanceTo(new THREE.Vector3(2.45, 0.9, 5.3)) < 2) {
+            //     if (category !== CollectionCategory.) setCategory("car")
         } else {
             if (!!category) setCategory(null)
         }
@@ -54,7 +54,7 @@ export function Component() {
 
     useEffect(() => {
         if (!!category && count === 0) {
-            navigate("/xr/physics/collection")
+            navigate(`/xr/physics/collection/${category.toLowerCase()}`)
         }
     }, [category, count])
 
@@ -79,7 +79,7 @@ export function Component() {
                         receiveShadow
                         castShadow
                     >
-                        ART
+                        SciFi
                         {/* <meshNormalMaterial /> */}
                         <meshPhysicalMaterial>
                             <GradientTexture
@@ -95,7 +95,7 @@ export function Component() {
                     <Root>
                         <Button backgroundColor={'hotpink'} panelMaterialClass={GlassMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} gap={7}>
                             <LayoutGrid color="white" />
-                            <Text color="white">Enter Art Gallery</Text>
+                            <Text color="white">Enter SciFi Gallery</Text>
                         </Button>
                     </Root>
                 </mesh>
@@ -260,13 +260,10 @@ export function Component() {
             <Fullscreen justifyContent="center" alignContent="center" alignItems="center">
                 {
                     category &&
-                    <Card panelMaterialClass={GlassMaterial} borderWidth={4} borderOpacity={0} padding={16} flexDirection="column" gapColumn={16} justifyContent="center" alignContent="center" alignItems="center">
-                        <Loading />
-                        <Text>Enter {category.toUpperCase()} category in {count.toString()}s...</Text>
-                    </Card>
+                    <LoadingScreen text={`Enter ${category.toLowerCase()} category in ${count.toString()}s...`} />
                 }
             </Fullscreen>
-            <Player initial={[0, 1, 0]} />
+            <Player initial={[-5, 1, 2]} initialRotation={[0, -Math.PI / 2, 0]} />
         </>
     )
 }

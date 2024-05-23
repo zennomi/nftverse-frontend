@@ -13,7 +13,7 @@ const direction = new THREE.Vector3()
 const frontVector = new THREE.Vector3()
 const sideVector = new THREE.Vector3()
 
-export default function Player({ initial }: { initial?: Vector3 }) {
+export default function Player({ initial, initialRotation }: { initial?: Vector3, initialRotation?: [number, number, number] }) {
     const ref = useRef<RapierRigidBody>(null)
     const rapier = useRapier()
     const [, get] = useKeyboardControls()
@@ -38,8 +38,12 @@ export default function Player({ initial }: { initial?: Vector3 }) {
         if (jump && grounded) ref.current.setLinvel({ x: 0, y: 3, z: 0 }, true)
     })
     useEffect(() => {
-        camera.rotation.set(0, 0, 0)
-    }, [])
+        if (initialRotation) {
+            camera.rotation.set(...initialRotation)
+        } else {
+            camera.rotation.set(0, 0, 0)
+        }
+    }, [camera, initialRotation])
     return (
         <>
             <RigidBody ref={ref} colliders={false} mass={1} type="dynamic" position={initial || [0, 4.5, 1]} enabledRotations={[false, false, false]}

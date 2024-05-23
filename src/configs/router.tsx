@@ -28,8 +28,8 @@ const router = createBrowserRouter([
                         lazy: () => import("../pages/Home"),
                     },
                     {
-                        path: "/xr/physics/collection",
-                        lazy: () => import("../pages/Collection")
+                        path: "/xr/physics/collection/futuristic",
+                        lazy: () => import("../pages/Collection/FuturisticCollection")
                     },
                     {
                         path: "/xr/physics/nft",
