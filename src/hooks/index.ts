@@ -1,61 +1,83 @@
 import { gql, useQuery } from "@apollo/client";
-import { ListingTokenEvent } from "../types/graphql";
+import { CollectionCategory, ConnectionQuery, ListingTokenEvent } from "../types/graphql";
 import useSWR from "swr/immutable";
 import axios from "axios";
 
 export * from "./apollo"
 
-const GET_LISTED_TOKENS = gql`
-query GetListingTokens($offset: Int = 0, $limit: Int = 10) {
-  listEvents(offset: $offset, orderBy: timestamp_DESC, where: {status_eq: LISTING}, limit: $limit) {
-    id
-    payToken {
-      decimals
-      id
-      symbol
+const GET_LISTED_TOKENS = (after?: string) => gql`
+query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCategory = ART, $first: Int = 10${after ? ', $after: String = "1"' : ''}) {
+  listEventsConnection(orderBy: timestamp_DESC, where: {seller_not_eq: $seller_not_eq, collection: {category_eq: $category_eq}}, first: $first${after ? ', after: $after' : ''}) {
+    totalCount
+    pageInfo {
+      startCursor
+      hasPreviousPage
+      hasNextPage
+      endCursor
     }
-    price
-    seller
-    timestamp
-    token {
-      id
-      image
-      tokenId
-      uri
-    }
-    collection {
-      id
-      name
-      symbol
+    edges {
+      cursor
+      node {
+        id
+        payToken {
+          decimals
+          id
+          symbol
+        }
+        price
+        seller
+        timestamp
+        token {
+          id
+          image
+          tokenId
+          uri
+        }
+        collection {
+          id
+          name
+          symbol
+        }
+      }
     }
   }
-
-  totalListingTokens
 }
 `
 
-const GET_OWNED_LISTING_TOKENS = gql`
-query GetOwnedListingTokens($offset: Int = 0, $limit: Int = 10, $seller_eq: String = "") {
-  listEvents(offset: $offset, orderBy: timestamp_DESC, where: {status_eq: LISTING, seller_eq: $seller_eq}, limit: $limit) {
-    id
-    payToken {
-      decimals
-      id
-      symbol
+const GET_OWNED_LISTING_TOKENS = (after?: string) => gql`
+query GetListingTokens($seller_eq: String = "", $first: Int = 10${after ? ', $after: String = "1"' : ''}) {
+  listEventsConnection(orderBy: timestamp_DESC, where: {seller_eq: $seller_eq}, first: $first${after ? ', after: $after' : ''}) {
+    totalCount
+    pageInfo {
+      startCursor
+      hasPreviousPage
+      hasNextPage
+      endCursor
     }
-    price
-    seller
-    timestamp
-    token {
-      id
-      image
-      tokenId
-      uri
-    }
-    collection {
-      id
-      name
-      symbol
+    edges {
+      cursor
+      node {
+        id
+        payToken {
+          decimals
+          id
+          symbol
+        }
+        price
+        seller
+        timestamp
+        token {
+          id
+          image
+          tokenId
+          uri
+        }
+        collection {
+          id
+          name
+          symbol
+        }
+      }
     }
   }
 }
@@ -82,9 +104,11 @@ const raribleAxios = axios.create({
 
 // graphql 
 
-export const useListedTokens = ({ offset, limit }: { offset?: number, limit?: number }) => useQuery<{ listEvents: ListingTokenEvent[], totalListingTokens: number }, { offset?: number, limit?: number }>(GET_LISTED_TOKENS, { variables: { offset, limit } })
+export const useListedTokens = ({ first, after, seller_not_eq, category_eq }:
+  { first?: number, after?: string, seller_not_eq?: string, category_eq?: CollectionCategory }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after?: string, seller_not_eq?: string, category_eq?: CollectionCategory }>(GET_LISTED_TOKENS(after), { variables: { first, after, seller_not_eq, category_eq } })
 
-export const useOwnedListingTokens = ({ offset, limit, owner }: { offset?: number, limit?: number, owner?: string }) => useQuery<{ listEvents: ListingTokenEvent[], }, { offset?: number, limit?: number, seller_eq?: string }>(GET_OWNED_LISTING_TOKENS, { variables: { offset, limit, seller_eq: owner } })
+export const useOwnedListingTokens = ({ first, after, seller_eq, }:
+  { first?: number, after?: string, seller_eq?: string, }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after?: string, seller_eq?: string, }>(GET_OWNED_LISTING_TOKENS(after), { variables: { first, after, seller_eq, } })
 
 export const usePaymentTokens = () => useQuery<{ paymentTokens: { decimals: number, id: string, name: string, symbol: string }[] }>(GET_PAYMENT_TOKENS)
 // api

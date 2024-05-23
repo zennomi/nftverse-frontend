@@ -17,7 +17,7 @@ import { RefreshCcw } from "@react-three/uikit-lucide";
 export default function OnsaleTab() {
     const { wallet } = useWalletContext()
     const address = wallet?.address || ZeroAddress
-    const { data, updateQuery } = useOwnedListingTokens({ owner: address })
+    const { data, updateQuery } = useOwnedListingTokens({ seller_eq: address, first: 50, })
     const [token, setToken] = useState<ListingTokenEvent | null>(null)
     const { toast } = useToastContext()
     const [loading, setLoading] = useState<boolean>(false)
@@ -29,7 +29,7 @@ export default function OnsaleTab() {
         setLoading(true)
         try {
             await cancelListedNFT(token, wallet.privateKey)
-            updateQuery(prev => ({ ...prev, listEvents: prev.listEvents.filter(e => e.id !== token.id) }))
+            updateQuery(prev => ({ ...prev, listEventsConnection: { ...prev.listEventsConnection, edges: [...prev.listEventsConnection.edges.filter(e => e.node.id !== token.id)] } }))
             setToken(null)
             toast({ text: "Cancel successfully" })
         } catch (error: any) {
@@ -85,7 +85,7 @@ export default function OnsaleTab() {
                             <Container width="100%">
                                 <Container flexDirection="row" flexWrap="wrap" height={200} overflow="scroll" width="100%">
                                     {
-                                        data?.listEvents.map(t => (
+                                        data?.listEventsConnection.edges.map(({ node: t }) => (
                                             <Container key={t.id} padding={4} width="33%" flexShrink={0}>
                                                 <Card flexDirection="column" gap={12} borderRadius={8} padding={4} borderColor={colors.border} borderWidth={1} width="100%" >
                                                     <Container width="100%" borderRadius={6} backgroundColor={colors.destructiveForeground}>

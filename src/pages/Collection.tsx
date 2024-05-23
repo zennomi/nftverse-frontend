@@ -6,7 +6,7 @@ import { useAppContext } from "../contexts/AppProvider";
 import { RigidBody } from "@react-three/rapier";
 import { ScifiGallery } from "../models/ScifiGallery";
 import { useListedTokens } from "../hooks";
-import { ListingTokenEvent } from "../types/graphql";
+import { CollectionCategory, ListingTokenEvent } from "../types/graphql";
 import { RatioImage } from "../components/override/RatioImage";
 import { GroupProps, Matrix4, useThree } from "@react-three/fiber";
 import { DragControls, Stats } from "@react-three/drei";
@@ -20,8 +20,7 @@ import { buyNFT, erc20Approve } from "../utils/ethers";
 import { getIPFSUri } from "../utils";
 import Navigator from "../components/Navigator";
 import { useApolloClient } from "@apollo/client";
-import { Fullscreen } from "../components/override/Fullscreen";
-import { Loading } from "../components/apfel/loading";
+import LoadingScreen from "../components/LoadingScreen";
 
 const position = new THREE.Vector3()
 const direction = new THREE.Vector3()
@@ -72,8 +71,9 @@ export function Component() {
 }
 
 export function NFTs() {
+    const { wallet } = useWalletContext()
     const [page, setPage] = useState<number>(1)
-    const { data, } = useListedTokens({ offset: (page - 1) * PAGE_LIMIT, limit: PAGE_LIMIT })
+    const { data, updateQuery } = useListedTokens({ after: page === 1 ? undefined : ((page - 1) * PAGE_LIMIT - 1).toString(), first: PAGE_LIMIT, category_eq: CollectionCategory.FUTURISTIC, seller_not_eq: wallet?.address })
     const { cart, addToCart: add, removeFromCart: remove, currentIndex, privateKeys } = useWalletContext()
     const { toast } = useToastContext()
     const [buyingToken, setBuyingToken] = useState<ListingTokenEvent | null>(null)
@@ -109,16 +109,14 @@ export function NFTs() {
     }, [buyingToken, setBuyingToken])
 
     const buy = useCallback(async () => {
-        setBuyingToken(null)
         setLoading(true)
         if (currentIndex < 0 || !buyingToken) return;
         try {
             await erc20Approve(buyingToken.payToken.id, buyingToken.price, privateKeys[currentIndex])
             await buyNFT(buyingToken, privateKeys[currentIndex])
             toast({ text: "Buy successfully" })
-            await client.refetchQueries({
-                include: ["GetListingTokens"],
-            });
+            updateQuery(prev => ({ ...prev, listEventsConnection: { ...prev.listEventsConnection, edges: [...prev.listEventsConnection.edges.filter(e => e.node.id !== buyingToken.id)] } }))
+            setBuyingToken(null)
         } catch (error: any) {
             console.error(error)
             if (isError(error, "CALL_EXCEPTION")) {
@@ -127,7 +125,7 @@ export function NFTs() {
                 toast({ text: "Error" })
             }
             await client.refetchQueries({
-                include: ["GetListingTokens"],
+                include: ["active"],
             });
         }
         setLoading(false)
@@ -138,7 +136,7 @@ export function NFTs() {
     return (
         <>
             {
-                data.listEvents.map((d, index) =>
+                data.listEventsConnection.edges.map(({ node: d }, index) =>
                     <Suspense key={d.id}>
                         {
                             TEST ?
@@ -204,17 +202,12 @@ export function NFTs() {
                     </Root>
                 </mesh>
             }
-            <Navigator page={page} setPage={setPage} maxPage={Math.ceil(data.totalListingTokens / PAGE_LIMIT)}>
-                <Text>Total listing NFTs: {data.totalListingTokens.toString()}</Text>
+            <Navigator page={page} setPage={setPage} maxPage={Math.ceil(data.listEventsConnection.totalCount / PAGE_LIMIT)}>
+                <Text>Total listing NFTs: {data.listEventsConnection.totalCount.toString()}</Text>
             </Navigator>
             {
                 loading &&
-                <Fullscreen justifyContent="center" alignContent="center" alignItems="center">
-                    <Card backgroundColor="black" borderRadius={16} padding={16} flexDirection="column" gapColumn={16} justifyContent="center" alignContent="center" alignItems="center">
-                        <Loading size="lg" />
-                        <Text color="white">Loading...</Text>
-                    </Card>
-                </Fullscreen>
+                <LoadingScreen />
             }
         </>
     )
