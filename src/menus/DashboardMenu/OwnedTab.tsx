@@ -15,6 +15,7 @@ import { Controller, useForm } from "react-hook-form";
 import { listNFT } from "../../utils/ethers";
 import { useToastContext } from "../../contexts/ToastContainer";
 import LoadingScreen from "../../components/LoadingScreen";
+import { getWeservUrl } from "../../utils";
 
 type TokenType = RaribleItem & { preview: string }
 
@@ -160,7 +161,7 @@ export default function OwnedTab() {
                                                     <Container width="100%" borderRadius={6} backgroundColor={colors.destructiveForeground}>
                                                         <Image
                                                             borderRadius={6}
-                                                            src={t.preview}
+                                                            src={getWeservUrl(t.preview, { w: 300, h: 300 })}
                                                             width="100%"
                                                             objectFit="cover"
                                                             aspectRatio={1}

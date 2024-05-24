@@ -8,7 +8,7 @@ import { ZeroAddress, formatUnits, isError } from "ethers";
 import { colors } from "../../components/default/theme";
 import { useToastContext } from "../../contexts/ToastContainer";
 import { ListingTokenEvent } from "../../types/graphql";
-import { getIPFSUri } from "../../utils";
+import { getIPFSUri, getWeservUrl } from "../../utils";
 import { cancelListedNFT } from "../../utils/ethers";
 import LoadingScreen from "../../components/LoadingScreen";
 import { RefreshCcw } from "@react-three/uikit-lucide";
@@ -91,7 +91,7 @@ export default function OnsaleTab() {
                                                     <Container width="100%" borderRadius={6} backgroundColor={colors.destructiveForeground}>
                                                         <Image
                                                             borderRadius={6}
-                                                            src={getIPFSUri(t.token.image)}
+                                                            src={getWeservUrl(t.token.image, { w: 300, h: 300 })}
                                                             width="100%"
                                                             objectFit="cover"
                                                             aspectRatio={1}

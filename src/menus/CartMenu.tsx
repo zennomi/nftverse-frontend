@@ -5,7 +5,7 @@ import { colors } from "../components/default/theme";
 import { useMemo, useState } from "react";
 import { Card } from "../components/default/card";
 import { Button } from "../components/default/button";
-import { getIPFSUri } from "../utils";
+import { getWeservUrl } from "../utils";
 import { formatUnits } from "ethers";
 import { groupBy, sum } from "lodash";
 
@@ -49,7 +49,7 @@ export function CartMenu() {
                 <Container flexDirection="row" overflow="scroll" justifyContent="space-around" paddingBottom={16}>
                     {
                         cart.slice(offset, offset + PAGE_LIMIT).map(token => {
-                            const image = getIPFSUri(token.token.image)
+                            const image = getWeservUrl(token.token.image, { w: 300, h: 300 })
 
                             return (
                                 <Container key={token.id} flexShrink={0} flexDirection="column" gap={12} borderRadius={6} borderColor={colors.mutedForeground} borderWidth={1} padding={6}>
