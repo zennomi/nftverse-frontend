@@ -10,7 +10,10 @@ export type ListingTokenEvent = {
     price: string,
     token: {
         id: string,
+        name?: string,
+        description?: string,
         image?: string,
+        animation?: string,
         tokenId: string,
         uri?: string
     },

@@ -29,7 +29,10 @@ query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCate
         timestamp
         token {
           id
+          name
+          description
           image
+          animation
           tokenId
           uri
         }

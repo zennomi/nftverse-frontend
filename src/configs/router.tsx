@@ -32,6 +32,10 @@ const router = createBrowserRouter([
                         lazy: () => import("../pages/Collection/FuturisticCollection")
                     },
                     {
+                        path: "/xr/physics/collection/pfp_model",
+                        lazy: () => import("../pages/Collection/PfpModelCollection")
+                    },
+                    {
                         path: "/xr/physics/nft",
                         lazy: () => import("../pages/Asset")
                     },

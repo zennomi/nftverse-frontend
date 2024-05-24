@@ -43,7 +43,7 @@ export default function Player({ initial, initialRotation }: { initial?: Vector3
         } else {
             camera.rotation.set(0, 0, 0)
         }
-    }, [camera, initialRotation])
+    }, [camera,])
     return (
         <>
             <RigidBody ref={ref} colliders={false} mass={1} type="dynamic" position={initial || [0, 4.5, 1]} enabledRotations={[false, false, false]}
