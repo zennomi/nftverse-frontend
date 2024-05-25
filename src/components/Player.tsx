@@ -2,6 +2,7 @@ import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d-compat"
 import { useEffect, useRef } from "react"
 import { Vector3, useFrame, useThree } from "@react-three/fiber"
+import { PositionalAudio } from '@react-three/drei'
 import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier } from "@react-three/rapier"
 import { ImmersiveSessionOrigin, NonImmersiveCamera, useInputSources } from "@coconut-xr/natuerlich/react"
 import { getInputSourceId } from "@coconut-xr/natuerlich"
@@ -18,11 +19,24 @@ export default function Player({ initial, initialRotation }: { initial?: Vector3
     const rapier = useRapier()
     const inputSources = useInputSources()
     const camera = useThree(state => state.camera)
+    const footstepAudio = useRef<THREE.PositionalAudio>(null)
 
     useFrame((state) => {
         if (!ref.current) return;
         const { forward, backward, left, right, jump, boost } = getState().controls
         const velocity = ref.current.linvel()
+        // sound
+        if (footstepAudio.current) {
+            footstepAudio.current.setVolume(0.5)
+            footstepAudio.current.playbackRate = boost ? 2 : 1
+            if (forward || backward || left || right) {
+                if (!footstepAudio.current.isPlaying) {
+                    footstepAudio.current.play()
+                }
+            } else {
+                footstepAudio.current.stop()
+            }
+        }
         // movement
         frontVector.set(0, 0, (backward) - (forward))
         sideVector.set((left) - (right), 0, 0)
@@ -57,6 +71,7 @@ export default function Player({ initial, initialRotation }: { initial?: Vector3
                             inputSources.map(inputSource => <InputSource key={getInputSourceId(inputSource)} inputSource={inputSource} body={ref} />)
                         }
                     </ImmersiveSessionOrigin>
+                    <PositionalAudio ref={footstepAudio} url="/audios/footstep.wav" loop={false} distance={5} />
                 </CapsuleCollider>
             </RigidBody>
         </>
