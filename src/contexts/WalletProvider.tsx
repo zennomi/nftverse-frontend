@@ -1,8 +1,9 @@
-import React, { Dispatch, SetStateAction, createContext, useCallback, useContext, useMemo, useState } from "react";
+import React, { Dispatch, SetStateAction, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AES, enc } from "crypto-js";
 import { useLocalStorage } from 'usehooks-ts';
 import { Wallet } from "ethers";
 import { ListingTokenEvent } from "../types/graphql";
+import { provider } from "../utils/ethers";
 
 const WALLET_DATA_KEY = "wallet-data"
 
@@ -19,6 +20,7 @@ type WalletValueType = {
     removeFromCart: (t: string) => void,
     wallet: Wallet | null,
     isConnected: boolean,
+    balance: bigint
 }
 
 export const WalletContext = createContext<WalletValueType>({
@@ -34,6 +36,7 @@ export const WalletContext = createContext<WalletValueType>({
     removeFromCart: (_: string) => { },
     wallet: null,
     isConnected: false,
+    balance: BigInt(0)
 });
 
 export const useWalletContext = () => useContext(WalletContext)
@@ -44,14 +47,23 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const [password, setPassword] = useState("")
     const [currentIndex, setCurrentIndex] = useState(-1)
     const [cart, setCart] = useState<ListingTokenEvent[]>([])
+    const [balance, setBalance] = useState<bigint>(BigInt(0))
     const wallet = useMemo(() => {
         if (currentIndex < 0) return null
-        return new Wallet(privateKeys[currentIndex])
+        return new Wallet(privateKeys[currentIndex], provider)
     }, [currentIndex, privateKeys])
 
     const isConnected = useMemo(() => {
         return currentIndex > 0
     }, [currentIndex])
+
+    useEffect(() => {
+        if (!wallet) return () => setBalance(BigInt(0))
+        provider.getBalance(wallet.address).then((val) => {
+            setBalance(val)
+        })
+        return () => setBalance(BigInt(0))
+    }, [wallet, setBalance])
 
     const deceryptPrivateKeys = useCallback((_password: string) => {
         if (!encryptedData) {
@@ -112,6 +124,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             removeFromCart,
             wallet,
             isConnected,
+            balance
         }),
         [
             privateKeys,

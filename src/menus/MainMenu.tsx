@@ -7,10 +7,9 @@ import { Card } from "../components/apfel/card";
 import { Columns3, Home, LogIn, LogOut, Package, RefreshCcw, StepBack, SwitchCamera, Wallet, X } from "@react-three/uikit-lucide";
 import { Button } from "../components/apfel/button";
 import { useEnterXR, useXR } from "@coconut-xr/natuerlich/react";
-import { Wallet as EthersWallet } from "ethers"
 
 import { sessionOptions } from "../configs/vr";
-import WalletMenu from "./Wallet";
+import WalletMenu from "./WalletMenu";
 import { useWalletContext } from "../contexts/WalletProvider";
 import { useNavigate } from "react-router-dom";
 import { CartMenu } from "./CartMenu";
@@ -30,10 +29,9 @@ export default function MainMenu() {
     const ref = useRef<THREE.Mesh>(null)
     const { menu, set } = useStore(({ actions, menu, set }) => ({ onToggleMenu: actions.onToggleMenu, menu, set }))
     const onCloseMenu = useCallback(() => {
-        setSelected("")
         set(() => ({ menu: false }))
     }, [set])
-    const { privateKeys, currentIndex } = useWalletContext()
+    const { wallet } = useWalletContext()
     const [selected, setSelected] = useState("")
     const enterVR = useEnterXR("immersive-vr", sessionOptions);
     const { mode, session } = useXR()
@@ -65,6 +63,10 @@ export default function MainMenu() {
         }
     }, [menu, camera, ref.current])
 
+    useEffect(() => {
+        setSelected("")
+    }, [menu])
+
     return (
         <mesh ref={ref} visible={menu} scale={0.1}>
             <Root>
@@ -77,7 +79,7 @@ export default function MainMenu() {
                                     <Text>Homepage</Text>
                                 </Button>
                                 {
-                                    currentIndex >= 0 &&
+                                    wallet &&
                                     <Button flexDirection="column" alignItems="center" justifyContent="center" padding={16} borderRadius={4} borderWidth={1.5} height={80} width={100} gap={4} onClick={() => setSelected("dashboard")}>
                                         <Columns3 height={20} />
                                         <Text>My NFTs</Text>
@@ -111,11 +113,11 @@ export default function MainMenu() {
                                     onClick={() => setSelected("wallet")}
                                 >
                                     {
-                                        !!privateKeys[currentIndex] ?
+                                        wallet ?
                                             <>
                                                 <SwitchCamera height={20} />
                                                 <Text justifyContent="center">Switch Wallet</Text>
-                                                <Text fontSize={14} justifyContent="center" width="100%">{new EthersWallet(privateKeys[currentIndex]).address}</Text>
+                                                <Text fontSize={14} justifyContent="center" width="100%" textAlign="center">{wallet.address.slice(0, 10)}...{wallet.address.slice(-10)}</Text>
                                             </> : <>
                                                 <Wallet height={20} />
                                                 <Text justifyContent="center">Connect Wallet</Text>

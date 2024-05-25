@@ -7,7 +7,7 @@ import { RaribleItem } from "../types/rarible"
 
 const RPC_URL = "https://rpc.sepolia.org/"
 
-const provider = new JsonRpcProvider(RPC_URL)
+export const provider = new JsonRpcProvider(RPC_URL)
 
 
 export async function buyNFT(token: ListingTokenEvent, privateKey: string) {
