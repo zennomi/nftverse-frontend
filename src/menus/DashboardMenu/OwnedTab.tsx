@@ -56,13 +56,13 @@ export default function OwnedTab() {
             reset()
             await mutate({ items: data.items.filter((t: RaribleItem) => t.id !== token.id) }, { revalidate: false })
             setToken(null)
-            toast({ text: "List successfully" })
+            toast({ text: "List successfully", variant: "success" })
         } catch (error: any) {
             console.error(error)
             if (isError(error, "CALL_EXCEPTION")) {
-                toast({ text: error.shortMessage || "Error" })
+                toast({ text: error.shortMessage || "Error", variant: "error" })
             } else {
-                toast({ text: "Error" })
+                toast({ text: "Error", variant: "error" })
             }
         }
         setLoading(false)

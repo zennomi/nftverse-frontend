@@ -114,15 +114,15 @@ export function NFTs() {
         try {
             await erc20Approve(buyingToken.payToken.id, buyingToken.price, privateKeys[currentIndex])
             await buyNFT(buyingToken, privateKeys[currentIndex])
-            toast({ text: "Buy successfully" })
+            toast({ text: "Buy successfully", variant: "success" })
             updateQuery(prev => ({ ...prev, listEventsConnection: { ...prev.listEventsConnection, edges: [...prev.listEventsConnection.edges.filter(e => e.node.id !== buyingToken.id)] } }))
             setBuyingToken(null)
         } catch (error: any) {
             console.error(error)
             if (isError(error, "CALL_EXCEPTION")) {
-                toast({ text: error.shortMessage || "Error" })
+                toast({ text: error.shortMessage || "Error", variant: "error" })
             } else {
-                toast({ text: "Error" })
+                toast({ text: "Error", variant: "error" })
             }
             await client.refetchQueries({
                 include: ["active"],

@@ -48,7 +48,7 @@ export default function MainMenu() {
         await client.refetchQueries({
             include: "all"
         })
-        toast({ text: "Refreshed!" })
+        toast({ text: "Refreshed!", variant: "info" })
     }, [client, mutate])
 
     useEffect(() => {

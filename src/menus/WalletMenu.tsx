@@ -22,7 +22,7 @@ export default function WalletMenu() {
             setPrivateKey("")
             importNewWallet(privateKey)
         } catch (error) {
-            toast({ text: "Invalid private key" })
+            toast({ text: "Invalid private key", variant: "error" })
             console.error(error)
         }
     }
@@ -43,7 +43,7 @@ export default function WalletMenu() {
                             <Input type="password" placeholder="Please enter your password" value={passwordValue} onValueChange={setPassword} />
                             <Button size="md" platter onClick={() => {
                                 const ok = deceryptPrivateKeys(passwordValue)
-                                if (!ok) toast({ text: "Incorrect password" })
+                                if (!ok) toast({ text: "Incorrect password", variant: "error" })
                             }
                             }>
                                 <Text>Unlock</Text>

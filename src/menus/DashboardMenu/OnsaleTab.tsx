@@ -31,13 +31,13 @@ export default function OnsaleTab() {
             await cancelListedNFT(token, wallet.privateKey)
             updateQuery(prev => ({ ...prev, listEventsConnection: { ...prev.listEventsConnection, edges: [...prev.listEventsConnection.edges.filter(e => e.node.id !== token.id)] } }))
             setToken(null)
-            toast({ text: "Cancel successfully" })
+            toast({ text: "Cancel successfully", variant: "success" })
         } catch (error: any) {
             console.error(error)
             if (isError(error, "CALL_EXCEPTION")) {
-                toast({ text: error.shortMessage || "Error" })
+                toast({ text: error.shortMessage || "Error", variant: "error" })
             } else {
-                toast({ text: "Error" })
+                toast({ text: "Error", variant: "error" })
             }
         }
         setLoading(false)
