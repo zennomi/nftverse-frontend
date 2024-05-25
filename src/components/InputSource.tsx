@@ -2,36 +2,26 @@ import { getInputSourceId } from "@coconut-xr/natuerlich";
 import { PointerController, TouchHand } from "@coconut-xr/natuerlich/defaults";
 import { useXRGamepadButton, useXRGamepadReader } from "@coconut-xr/natuerlich/react";
 import { useFrame } from "@react-three/fiber";
-import { RapierRigidBody, vec3 } from "@react-three/rapier";
+import { RapierRigidBody } from "@react-three/rapier";
 import { RefObject } from "react";
 import * as THREE from "three"
-import { useAppContext } from "../contexts/AppProvider";
+import { setState, useStore } from "../hooks/store";
 
-const SPEED = 5
 const vector2 = new THREE.Vector2()
-const direction = new THREE.Vector3()
-const frontVector = new THREE.Vector3()
-const sideVector = new THREE.Vector3()
 
-export default function InputSource({ inputSource, body }: { inputSource: XRInputSource, body: RefObject<RapierRigidBody> }) {
+export default function InputSource({ inputSource }: { inputSource: XRInputSource, body: RefObject<RapierRigidBody> }) {
     const inputSourceId = getInputSourceId(inputSource)
     const reader = useXRGamepadReader(inputSource)
-    const { toggleMainMenu } = useAppContext()
+    const { onToggleMenu, } = useStore((state) => ({ onToggleMenu: state.actions.onToggleMenu, }))
     useXRGamepadButton(inputSource, "a-button", () => {
-        toggleMainMenu()
+        onToggleMenu()
     })
 
-    useFrame((state) => {
-        if (!body.current) return;
-        const velocity = body.current.linvel()
+    useFrame(() => {
         // movement
         reader.readAxes("xr-standard-thumbstick", vector2)
-        if (vector2.x === 0 && vector2.y === 0) return;
-        frontVector.set(0, 0, vector2.y)
-        sideVector.set(-vector2.x, 0, 0)
-
-        direction.subVectors(frontVector, sideVector).normalize().multiplyScalar(SPEED).applyEuler(state.camera.rotation)
-        body.current.setLinvel({ x: direction.x, y: velocity.y, z: direction.z }, true)
+        setState((state) => ({ controls: { ...state.controls, forward: -vector2.y, backward: 0 } }))
+        setState((state) => ({ controls: { ...state.controls, right: vector2.x, left: 0 } }))
     })
 
     return inputSource.hand != null ? (

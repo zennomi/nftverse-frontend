@@ -1,10 +1,10 @@
-import { Dispatch, ReactNode, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, ReactNode, SetStateAction, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
 import { Root, Text } from "@react-three/uikit";
-import { useKeyboardControls } from "@react-three/drei";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationLink, PaginationNext } from "./default/pagination";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./default/card";
+import { useStore } from "../hooks/store";
 
 const position = new THREE.Vector3()
 const direction = new THREE.Vector3()
@@ -12,36 +12,13 @@ const direction = new THREE.Vector3()
 const HIDE_POSITION = new THREE.Vector3(0, -10, 0)
 
 export default function Navigator({ page, setPage, maxPage, children }: { children?: ReactNode, page: number, maxPage: number, setPage: Dispatch<SetStateAction<number>> }) {
-    const [open, setOpen] = useState<boolean>(false)
+    const openNavigator = useStore(({ navigator }) => navigator)
     const camera = useThree(state => state.camera)
     const ref = useRef<THREE.Mesh>(null)
-    const [sub,] = useKeyboardControls()
-
-    useEffect(() => {
-        return sub(
-            (state) => state.navigator,
-            (pressed) => {
-                if (pressed) {
-                    setOpen(prev => !prev)
-                }
-            }
-        )
-    }, [])
-
-    useEffect(() => {
-        return sub(
-            (state) => state.esc,
-            (pressed) => {
-                if (pressed) {
-                    setOpen(false)
-                }
-            }
-        )
-    }, [])
 
     useEffect(() => {
         if (!camera || !ref.current) return;
-        if (open) {
+        if (openNavigator) {
             camera.getWorldPosition(position)
             camera.getWorldDirection(direction)
             ref.current.position.copy(position).add(direction.multiplyScalar(1))
@@ -49,10 +26,10 @@ export default function Navigator({ page, setPage, maxPage, children }: { childr
         } else {
             ref.current.position.copy(HIDE_POSITION)
         }
-    }, [open, camera, ref.current])
+    }, [openNavigator, camera, ref.current])
 
     return (
-        <mesh ref={ref} visible={open} scale={0.3}>
+        <mesh ref={ref} visible={openNavigator} scale={0.3}>
             <Root>
                 <Card>
                     <CardHeader>

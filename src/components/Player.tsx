@@ -2,11 +2,11 @@ import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d-compat"
 import { useEffect, useRef } from "react"
 import { Vector3, useFrame, useThree } from "@react-three/fiber"
-import { useKeyboardControls, } from "@react-three/drei"
 import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier } from "@react-three/rapier"
-import { ImmersiveSessionOrigin, NonImmersiveCamera, useInputSources, useXR } from "@coconut-xr/natuerlich/react"
+import { ImmersiveSessionOrigin, NonImmersiveCamera, useInputSources } from "@coconut-xr/natuerlich/react"
 import { getInputSourceId } from "@coconut-xr/natuerlich"
 import InputSource from "./InputSource"
+import { getState } from "../hooks/store"
 
 const SPEED = 5
 const direction = new THREE.Vector3()
@@ -16,20 +16,17 @@ const sideVector = new THREE.Vector3()
 export default function Player({ initial, initialRotation }: { initial?: Vector3, initialRotation?: [number, number, number] }) {
     const ref = useRef<RapierRigidBody>(null)
     const rapier = useRapier()
-    const [, get] = useKeyboardControls()
     const inputSources = useInputSources()
     const camera = useThree(state => state.camera)
 
     useFrame((state) => {
         if (!ref.current) return;
-        if (useXR.getState().mode === "immersive-vr") return;
-
-        const { forward, backward, left, right, jump } = get()
+        const { forward, backward, left, right, jump, boost } = getState().controls
         const velocity = ref.current.linvel()
         // movement
-        frontVector.set(0, 0, Number(backward) - Number(forward))
-        sideVector.set(Number(left) - Number(right), 0, 0)
-        direction.subVectors(frontVector, sideVector).normalize().multiplyScalar(SPEED).applyEuler(state.camera.rotation)
+        frontVector.set(0, 0, (backward) - (forward))
+        sideVector.set((left) - (right), 0, 0)
+        direction.subVectors(frontVector, sideVector).normalize().multiplyScalar(boost ? SPEED * 2 : SPEED).applyEuler(state.camera.rotation)
         ref.current.setLinvel({ x: direction.x, y: velocity.y, z: direction.z }, true)
         // // jumping
         const world = rapier.world
