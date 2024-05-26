@@ -53,6 +53,7 @@ export function Keyboard() {
         { keys: ['j', 'J'], fn: (jump) => set((state) => ({ controls: { ...state.controls, jump: jump ? 1 : 0 } })) },
         { keys: ['m', 'M'], fn: () => set((state) => ({ menu: !state.menu })), up: false },
         { keys: ['n', 'N'], fn: () => set((state) => ({ navigator: !state.navigator })), up: false },
+        { keys: ['t', 'T'], fn: () => set((state) => ({ stats: !state.stats })), up: false },
         { keys: ['Esc'], fn: () => set(() => ({ menu: false, navigator: false, })), up: false },
     ])
     return null

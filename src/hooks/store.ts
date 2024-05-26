@@ -12,7 +12,7 @@ const controls = {
     jump: 0,
 }
 
-const booleans = ['menu', 'navigator', 'stats'] as const
+const booleans = ['menu', 'navigator', 'teleport', 'stats'] as const
 
 type Booleans = typeof booleans[number]
 
@@ -52,6 +52,7 @@ const useStoreImpl = create<IState>((set: SetState<IState>, get: GetState<IState
         stats: false,
         menu: false,
         navigator: false,
+        teleport: false
     }
 })
 

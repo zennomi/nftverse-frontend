@@ -7,7 +7,7 @@ import { RigidBody } from "@react-three/rapier";
 import { useListedTokens } from "../../hooks";
 import { CollectionCategory, ListingTokenEvent } from "../../types/graphql";
 import { GroupProps, Matrix4, useThree } from "@react-three/fiber";
-import { DragControls, Float, Stats, useGLTF } from "@react-three/drei";
+import { DragControls, Float, useGLTF } from "@react-three/drei";
 import { Container, MetalMaterial, Root, Text } from "@react-three/uikit";
 import { Button } from "../../components/default/button";
 import { Ban, Check, Eye, Heart, PackageMinus, PackagePlus, ShoppingCart } from "@react-three/uikit-lucide";
@@ -65,7 +65,6 @@ export function Component() {
 
     return (
         <>
-            {TEST && <Stats />}
             <ambientLight intensity={1} color="#BBBBBB" />
             <directionalLight position={[-0.5, 1, 1]} color="#FFFFFF" intensity={0.6} castShadow />
             <RigidBody mass={1} type="fixed" colliders={"trimesh"} scale={0.05} position={[0, 0.1, 0]} rotation={[0.015, 0.01, 0]}>

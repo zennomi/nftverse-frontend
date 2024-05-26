@@ -1,5 +1,5 @@
 import '../App.css'
-import { Environment, } from '@react-three/drei'
+import { Environment, Stats, } from '@react-three/drei'
 import { XRCanvas } from '@coconut-xr/natuerlich/defaults';
 
 import { Leva } from 'leva';
@@ -12,7 +12,7 @@ import { useStore } from '../hooks/store';
 
 function XRLayout() {
     const { evnPreset, } = useAppContext()
-    const onToggleMenu = useStore(({ actions: { onToggleMenu } }) => onToggleMenu)
+    const { onToggleMenu, stats } = useStore(({ actions: { onToggleMenu }, stats }) => ({ onToggleMenu, stats }))
     const handleRightClick: MouseEventHandler<HTMLDivElement> = (event) => {
         event.preventDefault()
         if (event.button === 2) {
@@ -22,6 +22,9 @@ function XRLayout() {
 
     return (
         <div className="XR" onContextMenu={handleRightClick}>
+            {
+                stats && <Stats />
+            }
             <Leva />
             <EnterVRButton />
             <Keyboard />

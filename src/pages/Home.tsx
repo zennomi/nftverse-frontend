@@ -1,4 +1,4 @@
-import { Center, Float, GradientTexture, Sparkles, Stats, Text3D } from "@react-three/drei";
+import { Center, Float, GradientTexture, Text3D } from "@react-three/drei";
 import { useEffect, useState } from "react";
 import Player from "../components/Player";
 import { Store } from "../models/Store";
@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { Fullscreen } from "../components/override/Fullscreen";
 import { CollectionCategory } from "../types/graphql";
 import LoadingScreen from "../components/LoadingScreen";
+import { useStore } from "../hooks/store";
 
 const cameraPosition = new THREE.Vector3()
 
@@ -26,6 +27,7 @@ export function Component() {
             intervalMs: 1000,
         })
     const navigate = useNavigate()
+    const set = useStore(state => state.set)
 
     useFrame(({ camera }) => {
         camera.getWorldPosition(cameraPosition)
@@ -44,9 +46,11 @@ export function Component() {
 
     useEffect(() => {
         if (category) {
+            set({ teleport: true })
             resetCountdown()
             startCountdown()
         } else {
+            set({ teleport: false })
             stopCountdown()
             resetCountdown()
         }
@@ -54,13 +58,13 @@ export function Component() {
 
     useEffect(() => {
         if (!!category && count === 0) {
+            set({ teleport: false })
             navigate(`/xr/physics/collection/${category.toLowerCase()}`)
         }
     }, [category, count])
 
     return (
         <>
-            <Stats />
             <ambientLight intensity={1} color="#BBBBBB" />
             <directionalLight position={[2.5, 5, 5]} color="#FFFFFF" intensity={0.6} castShadow />
             <RigidBody mass={1} type="fixed" position={[0, 0.1, 0]} rotation={[0, Math.PI, 0]} colliders={"trimesh"}>
@@ -222,7 +226,6 @@ export function Component() {
                         </meshBasicMaterial>
                     </Text3D>
                 </Center>
-                <Sparkles count={50} scale={1 * 2} size={6} speed={0.4} />
                 <mesh position={[0, -0.35, 0.5]} rotation={[-Math.PI / 2, 0, 0]} scale={0.2}>
                     <Root>
                         <Button backgroundColor={'#0496ff'} panelMaterialClass={GlassMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} gap={7}>
