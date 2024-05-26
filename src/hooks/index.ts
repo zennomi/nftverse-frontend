@@ -1,5 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
-import { CollectionCategory, ConnectionQuery, ListingTokenEvent } from "../types/graphql";
+import { CollectionCategory, ConnectionQuery, ListingTokenEvent, Token } from "../types/graphql";
 import useSWR from "swr/immutable";
 import axios from "axios";
 
@@ -97,6 +97,30 @@ query GetPaymentTokens {
 }
 `
 
+const GET_TOKEN_BY_ID = gql`
+query GetTokenById($id: String = "") {
+  tokenById(id: $id) {
+    id
+    description
+    image
+    name
+    uri
+    tokenId
+    animation
+    collection {
+      category
+      id
+      name
+      symbol
+    }
+    attributes {
+      traitType
+      value
+    }
+  }
+}
+`
+
 const raribleAxios = axios.create({
   baseURL: `https://testnet-api.rarible.org/v0.1`,
   headers: {
@@ -114,6 +138,9 @@ export const useOwnedListingTokens = ({ first, after, seller_eq, }:
   { first?: number, after?: string, seller_eq?: string, }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after?: string, seller_eq?: string, }>(GET_OWNED_LISTING_TOKENS(after), { variables: { first, after, seller_eq, } })
 
 export const usePaymentTokens = () => useQuery<{ paymentTokens: { decimals: number, id: string, name: string, symbol: string }[] }>(GET_PAYMENT_TOKENS)
+
+export const useToken = (id: string) => useQuery<{ tokenById: Token }, { id: string }>(GET_TOKEN_BY_ID, { variables: { id } })
+
 // api
 export const useOwnedTokens = ({ address, continuation }: { address: string, continuation?: string }) => useSWR(`useOwnedTokens-${address}`, () => raribleAxios({
   url: "/items/byOwner",

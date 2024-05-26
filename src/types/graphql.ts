@@ -17,11 +17,7 @@ export type ListingTokenEvent = {
         tokenId: string,
         uri?: string
     },
-    collection: {
-        id: string,
-        name: string,
-        symbol: string,
-    }
+    collection: Collection
 }
 
 export type ConnectionQuery<T> = {
@@ -44,4 +40,26 @@ export enum CollectionCategory {
     PFP_MODEL = "PFP_MODEL",
     GAMING = "GAMING",
     JAPAN = "JAPAN",
+}
+
+export type Token = {
+    id: string
+    description?: string
+    image?: string
+    name?: string
+    uri?: string
+    tokenId: string
+    animation?: string
+    collection: Collection
+    attributes: {
+        traitType: string
+        value: string
+    }[]
+}
+
+export type Collection = {
+    id: string,
+    name: string,
+    symbol: string,
+    category: string,
 }
