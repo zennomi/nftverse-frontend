@@ -1,7 +1,7 @@
 import { Container, Content, Text } from "@react-three/uikit";
 import { Card } from "../components/apfel/card";
 import { Input } from "../components/apfel/input";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Button } from "../components/apfel/button";
 import { Wallet, formatEther } from "ethers"
 import { useWalletContext } from "../contexts/WalletProvider";
@@ -29,11 +29,13 @@ export default function WalletMenu() {
 
     return (
         <Container flexDirection="column" justifyContent="center" alignItems="center" gap={16}>
-            <Content width={100}>
-                <group>
-                    <Gltf src="/models/Metamask.glb" rotation={[0, Math.PI / 2, 0]} />
-                </group>
-            </Content>
+            <Suspense>
+                <Content width={100}>
+                    <group>
+                        <Gltf src="/models/Metamask.glb" rotation={[0, Math.PI / 2, 0]} />
+                    </group>
+                </Content>
+            </Suspense>
             <Card width={300} padding={16} flexDirection="column" gap={8} borderRadius={8}>
                 {
                     password === "" ?
