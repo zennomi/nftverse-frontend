@@ -2,6 +2,8 @@ import { gql, useQuery } from "@apollo/client";
 import { CollectionCategory, ConnectionQuery, ListingTokenEvent, Token } from "../types/graphql";
 import useSWR from "swr/immutable";
 import axios from "axios";
+import { RaribleActivity } from "../types/rarible";
+import { getOwnerOfToken } from "../utils/ethers";
 
 export * from "./apollo"
 
@@ -121,6 +123,27 @@ query GetTokenById($id: String = "") {
 }
 `
 
+const GET_LISTING_TOKEN = gql`
+query GetListingToken($id_eq: String = "") {
+  listEvents(where: {token: {id_eq: $id_eq}}, limit: 1) {
+    payToken {
+      decimals
+      id
+      name
+      symbol
+    }
+    price
+    seller
+    timestamp
+    token {
+      animation
+      id
+      tokenId
+    }
+  }
+}
+`
+
 const raribleAxios = axios.create({
   baseURL: `https://testnet-api.rarible.org/v0.1`,
   headers: {
@@ -141,6 +164,8 @@ export const usePaymentTokens = () => useQuery<{ paymentTokens: { decimals: numb
 
 export const useToken = (id: string) => useQuery<{ tokenById: Token }, { id: string }>(GET_TOKEN_BY_ID, { variables: { id } })
 
+export const useListingToken = (id: string, skip?: boolean) => useQuery<{ listEvents: ListingTokenEvent[] }, { id_eq: string }>(GET_LISTING_TOKEN, { variables: { id_eq: id }, skip })
+
 // api
 export const useOwnedTokens = ({ address, continuation }: { address: string, continuation?: string }) => useSWR(`useOwnedTokens-${address}`, () => raribleAxios({
   url: "/items/byOwner",
@@ -150,3 +175,26 @@ export const useOwnedTokens = ({ address, continuation }: { address: string, con
     continuation
   }
 }).then(res => res.data))
+
+export const useTokenActivities = (id: string) => useSWR<{ activities: RaribleActivity[] }>(`useTokenActivities-${id}`, () => raribleAxios({
+  url: "/activities/search",
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  data: JSON.stringify({
+    size: 50,
+    filter: {
+      blockchains: ["ETHEREUM"],
+      types: [
+        "TRANSFER",
+        "MINT",
+        "BURN"
+      ],
+      items: [`ETHEREUM:${id.replace("-", ":")}`]
+    },
+    sort: "LATEST",
+  })
+}).then(res => res.data))
+
+export const useOwnerOfToken = (id: string) => useSWR<string>(`useOwnerOfToken-${id}`, () => getOwnerOfToken(id))

@@ -21,6 +21,7 @@ import { getIPFSUri } from "../../utils";
 import Navigator from "../../components/Navigator";
 import { useApolloClient } from "@apollo/client";
 import LoadingScreen from "../../components/LoadingScreen";
+import { NavigateFunction, useNavigate } from "react-router-dom";
 
 const position = new THREE.Vector3()
 const direction = new THREE.Vector3()
@@ -80,6 +81,7 @@ export function NFTs() {
     const dialogRef = useRef<THREE.Mesh>(null)
     const client = useApolloClient();
     const [loading, setLoading] = useState<boolean>(false)
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (!camera || !dialogRef.current) return;
@@ -152,6 +154,7 @@ export function NFTs() {
                                         addToCart={addToCart}
                                         removeFromCart={removeFromCart}
                                         handleBuyClick={() => handleBuyClick(d)}
+                                        navigate={navigate}
                                     />
                                 </DragControls> :
                                 <NFT
@@ -162,6 +165,7 @@ export function NFTs() {
                                     addToCart={addToCart}
                                     removeFromCart={removeFromCart}
                                     handleBuyClick={() => handleBuyClick(d)}
+                                    navigate={navigate}
                                 />
                         }
                     </Suspense>
@@ -213,12 +217,13 @@ export function NFTs() {
 }
 
 export function NFT({
-    token, cart, addToCart, removeFromCart, handleBuyClick, ...props }:
+    token, cart, addToCart, removeFromCart, handleBuyClick, navigate, ...props }:
     GroupProps & {
         token: ListingTokenEvent, cart: ListingTokenEvent[],
         addToCart: (t: ListingTokenEvent) => void,
         removeFromCart: (t: ListingTokenEvent) => void,
         handleBuyClick: () => void,
+        navigate: NavigateFunction
     }) {
     const image = getIPFSUri(token.token.image)
     const imageRef = useRef<THREE.Mesh>(null)
@@ -306,7 +311,7 @@ export function NFT({
                         }
                     </Container>
                     <Container flexDirection="row" gap={3}>
-                        <Button backgroundColor={'crimson'} panelMaterialClass={MetalMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} size="icon">
+                        <Button backgroundColor={'crimson'} panelMaterialClass={MetalMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} size="icon" onClick={() => navigate(`/xr/physics/token/futuristic/${token.token.id}`)}>
                             <Eye color="pink" />
                         </Button>
                         <Button backgroundColor={'crimson'} panelMaterialClass={MetalMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} size="icon">

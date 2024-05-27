@@ -47,3 +47,10 @@ export async function cancelListedNFT(token: ListingTokenEvent, privateKey: stri
 
     await marketplaceContract.cancelListedNFT(collectionAddress, token.token.tokenId)
 }
+
+export async function getOwnerOfToken(id: string) {
+    const [collection, tokenId] = id.split("-")
+    const nft = new Contract(collection, ERC721_ABI, provider)
+
+    return await nft.ownerOf(tokenId) as string
+}

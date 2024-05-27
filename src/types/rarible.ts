@@ -18,3 +18,24 @@ export type RaribleItem = {
         }[]
     }
 }
+
+export type RaribleActivity = {
+    "@type": "TRANSFER" | "MINT" | "BURN"
+    id: string
+    date: string
+    lastUpdatedAt: string
+    cursor: string
+    reverted: string
+    from: string
+    owner: string
+    contract: string
+    collection: string
+    tokenId: string
+    itemId: string
+    value: string
+    blockchainInfo: {
+        transactionHash: string
+        blockHash: string
+        blockNumber: number
+    }
+}
