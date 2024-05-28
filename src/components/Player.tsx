@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import { Vector3, useFrame, useThree } from "@react-three/fiber"
 import { PositionalAudio, Sparkles } from '@react-three/drei'
 import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier } from "@react-three/rapier"
-import { ImmersiveSessionOrigin, NonImmersiveCamera, useInputSources, useXR } from "@coconut-xr/natuerlich/react"
+import { ImmersiveSessionOrigin, NonImmersiveCamera, useInputSources } from "@coconut-xr/natuerlich/react"
 import { getInputSourceId } from "@coconut-xr/natuerlich"
 import InputSource from "./InputSource"
 import { getState, useStore } from "../hooks/store"
@@ -21,7 +21,6 @@ export default function Player({ initial, initialRotation }: { initial?: Vector3
     const camera = useThree(state => state.camera)
     const footstepAudio = useRef<THREE.PositionalAudio>(null)
     const teleport = useStore(state => state.teleport)
-    const inVR = useXR(({ mode }) => mode !== "none");
 
     useFrame((state) => {
         if (!ref.current) return;
@@ -74,7 +73,7 @@ export default function Player({ initial, initialRotation }: { initial?: Vector3
                         }
                     </ImmersiveSessionOrigin>
                     <PositionalAudio ref={footstepAudio} url="/audios/footstep.wav" loop={false} distance={5} />
-                    <Sparkles visible={teleport} count={inVR ? 100 : 1000} scale={1} size={inVR ? 1 : 10} speed={inVR ? 3 : 5} />
+                    <Sparkles visible={teleport} count={100} scale={1} size={5} speed={3} />
                 </CapsuleCollider>
             </RigidBody>
         </>
