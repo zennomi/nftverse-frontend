@@ -52,7 +52,7 @@ export default function WalletMenu() {
                             </Button>
                         </>
                         :
-                        wallet && (manageWallet ? <>
+                        (manageWallet || privateKeys.length === 0 ? <>
                             <Text fontWeight={600} textAlign="center">Sellect an wallet</Text>
                             <Button positionType="absolute" positionRight={5} positionTop={5} size="sm" padding={4} onClick={() => setManageWallet(false)}>
                                 <X />
@@ -73,7 +73,7 @@ export default function WalletMenu() {
                                                 <Text>{w.address.slice(0, 7)}...{w.address.slice(-6)}</Text>
                                             </Container>
                                         )
-                                    }) : <Text>You need import new wallet</Text>
+                                    }) : <Text textAlign="center">You have not import any wallet yet</Text>
                                 }
                             </Container>
                             <Text fontWeight={600} textAlign="center">Or import a new wallet</Text>
@@ -84,7 +84,7 @@ export default function WalletMenu() {
                                 <Text fontSize={10}>All your private keys are stored at browser local storage</Text>
                             </Container>
                         </>
-                            :
+                            : wallet &&
                             <>
                                 <Button platter gap={8} onClick={() => setManageWallet(prev => !prev)}>
                                     <Text fontWeight={700}>{wallet.address.slice(0, 7)}...{wallet.address.slice(-6)}</Text>
