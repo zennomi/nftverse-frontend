@@ -67,10 +67,13 @@ export function NFT() {
     return (
         <>
             {
-                token.animation &&
-                <Suspense>
-                    <Model animation={token.animation} />
-                </Suspense>
+                token.animation ?
+                    <Suspense>
+                        <Model animation={token.animation} />
+                    </Suspense> :
+                    token.image && <Suspense>
+                        <FramedImage image={image} position={[0, 1.5, -3.2]} />
+                    </Suspense>
             }
             {
                 token.image &&
@@ -85,7 +88,6 @@ export function NFT() {
                     <Image url={image} position={[4.7, 1.37, -1.7]} rotation={[0, -1.9, 0]} scale={2.2} />
                     <Image url={image} position={[-3, 1.37, -7.31]} rotation={[0, 0.64, 0]} scale={2.2} />
                     <Image url={image} position={[3, 1.37, -7.31]} rotation={[0, -0.64, 0]} scale={2.2} />
-                    <FramedImage image={image} position={[0, 1.5, -3.2]} />
                 </Suspense>
             }
             <mesh position={[-0.05, 1.37, -7.86]} rotation={[0, 0.015, 0]}>
