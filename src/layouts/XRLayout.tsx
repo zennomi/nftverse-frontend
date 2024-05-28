@@ -6,7 +6,7 @@ import { Leva } from 'leva';
 import { MouseEventHandler } from 'react';
 import { useAppContext } from '../contexts/AppProvider';
 import { Outlet } from 'react-router-dom';
-import EnterVRButton from '../components/EnterVRButton';
+import EnterVRButton from '../components/FixedMenuButton';
 import { Keyboard } from '../components/Keyboard';
 import { useStore } from '../hooks/store';
 
