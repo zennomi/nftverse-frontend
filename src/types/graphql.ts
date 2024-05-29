@@ -15,7 +15,11 @@ export type ListingTokenEvent = {
         image?: string,
         animation?: string,
         tokenId: string,
-        uri?: string
+        uri?: string,
+        attributes?: {
+            traitType: string
+            value: string
+        }[]
     },
     collection: Collection
 }
@@ -40,6 +44,7 @@ export enum CollectionCategory {
     PFP_MODEL = "PFP_MODEL",
     GAMING = "GAMING",
     JAPAN = "JAPAN",
+    CAR = "CAR",
 }
 
 export type Token = {

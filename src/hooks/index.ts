@@ -37,6 +37,10 @@ query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCate
           animation
           tokenId
           uri
+          attributes {
+            traitType
+            value
+          }
         }
         collection {
           id

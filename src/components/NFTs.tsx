@@ -29,7 +29,8 @@ export type NFTProps = GroupProps & {
     addToCart: (t: ListingTokenEvent) => void,
     removeFromCart: (t: ListingTokenEvent) => void,
     handleBuyClick: () => void,
-    navigate: NavigateFunction
+    navigate: NavigateFunction,
+    index: number,
 }
 
 export default function NFTs({ NFT, positions, rotations, category }: {
@@ -124,6 +125,7 @@ export default function NFTs({ NFT, positions, rotations, category }: {
                                         removeFromCart={removeFromCart}
                                         handleBuyClick={() => handleBuyClick(d)}
                                         navigate={navigate}
+                                        index={index}
                                     />
                                 </DragControls> :
                                 <NFT
@@ -135,6 +137,7 @@ export default function NFTs({ NFT, positions, rotations, category }: {
                                     removeFromCart={removeFromCart}
                                     handleBuyClick={() => handleBuyClick(d)}
                                     navigate={navigate}
+                                    index={index}
                                 />
                         }
                     </Suspense>

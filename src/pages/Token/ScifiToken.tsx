@@ -4,9 +4,9 @@ import Player from "../../components/Player"
 import { RigidBody } from "@react-three/rapier"
 import { ScifiLab } from "../../models/ScifiLab"
 import { useParams } from "react-router-dom"
-import { Image, useGLTF } from "@react-three/drei"
+import { Center, Image, Resize, useGLTF } from "@react-three/drei"
 import { last } from "lodash"
-import { GroupProps, useFrame, useThree } from "@react-three/fiber"
+import { GroupProps, useFrame } from "@react-three/fiber"
 import { useListingToken, useOwnerOfToken, useToken, useTokenActivities } from "../../hooks"
 import * as THREE from "three"
 import { getIPFSUri, shortenAddress } from "../../utils"
@@ -20,6 +20,7 @@ import { useWalletContext } from "../../contexts/WalletProvider"
 import { useToastContext } from "../../contexts/ToastContainer"
 import { MARKETPLACE_ADDRESS } from "../../configs/addresses"
 import { RatioImage } from "../../components/override/RatioImage"
+import { ErrorBoundary } from "react-error-boundary"
 
 // export async function loader({ params }: { params: { id: string } }) {
 //     const { id } = params;
@@ -78,16 +79,12 @@ export function NFT() {
             {
                 token.image &&
                 <Suspense>
-                    {/* <DragControls
-                        onDrag={(localMatrix: Matrix4, _: Matrix4, worldMatrix: Matrix4, __: Matrix4) => {
-                            console.info(localMatrix, worldMatrix,)
-                        }}
-                    >
-                    </DragControls> */}
-                    <Image url={image} position={[-4.7, 1.37, -1.7]} rotation={[0, 1.9, 0]} scale={2.2} />
-                    <Image url={image} position={[4.7, 1.37, -1.7]} rotation={[0, -1.9, 0]} scale={2.2} />
-                    <Image url={image} position={[-3, 1.37, -7.31]} rotation={[0, 0.64, 0]} scale={2.2} />
-                    <Image url={image} position={[3, 1.37, -7.31]} rotation={[0, -0.64, 0]} scale={2.2} />
+                    <ErrorBoundary fallback={<></>}>
+                        <Image url={image} position={[-4.7, 1.37, -1.7]} rotation={[0, 1.9, 0]} scale={2.2} />
+                        <Image url={image} position={[4.7, 1.37, -1.7]} rotation={[0, -1.9, 0]} scale={2.2} />
+                        <Image url={image} position={[-3, 1.37, -7.31]} rotation={[0, 0.64, 0]} scale={2.2} />
+                        <Image url={image} position={[3, 1.37, -7.31]} rotation={[0, -0.64, 0]} scale={2.2} />
+                    </ErrorBoundary>
                 </Suspense>
             }
             <mesh position={[-0.05, 1.37, -7.86]} rotation={[0, 0.015, 0]}>
@@ -130,7 +127,7 @@ export function NFT() {
 export function Model({ animation }: { animation: string }) {
     const ref = useRef<THREE.Group>(null)
 
-    const src = animation.startsWith("https://turnon.meebits.app/viewer/") ? "https://livingpfp.meebits.app/api/meebits?type=3d&token_id=" + last(animation.split("/")) : ""
+    const src = animation.startsWith("https://turnon.meebits.app/viewer/") ? "https://livingpfp.meebits.app/api/meebits?type=3d&token_id=" + last(animation.split("/")) : animation
 
     const gltf = useGLTF(src)
 
@@ -141,8 +138,12 @@ export function Model({ animation }: { animation: string }) {
     })
 
     return (
-        <group ref={ref} position={[0, 0.8, -3.2]}>
-            <primitive object={gltf.scene} />
+        <group ref={ref} position={[0, 1, -3.2]}>
+            <Resize scale={1.3}>
+                <Center top>
+                    <primitive object={gltf.scene} />
+                </Center>
+            </Resize>
         </group>
     )
 }

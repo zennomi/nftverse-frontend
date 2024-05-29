@@ -35,6 +35,8 @@ export function Component() {
             if (category !== CollectionCategory.FUTURISTIC) setCategory(CollectionCategory.FUTURISTIC)
         } else if (cameraPosition.distanceTo(new THREE.Vector3(2.45, 0.9, 5.3)) < 2) {
             if (category !== CollectionCategory.PFP_MODEL) setCategory(CollectionCategory.PFP_MODEL)
+        } else if (cameraPosition.distanceTo(new THREE.Vector3(-3.35, 0.9, -1.2)) < 2) {
+            if (category !== CollectionCategory.CAR) setCategory(CollectionCategory.CAR)
         } else {
             if (!!category) setCategory(null)
         }
