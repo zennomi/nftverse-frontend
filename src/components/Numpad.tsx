@@ -10,8 +10,8 @@ export default function Numpad({ value, onValueChange, ...props }: { value: stri
             <Container flexDirection="row" flexWrap="wrap">
                 {
                     values.map(number => (
-                        <Container width="33%" justifyContent="center" padding={4}>
-                            <Button justifyContent="center" key={number} variant="icon" onClick={() => { onValueChange(value + number) }} platter>
+                        <Container width="33%" justifyContent="center" padding={4} key={number} >
+                            <Button justifyContent="center" variant="icon" onClick={() => { onValueChange(value + number) }} platter>
                                 <Text textAlign="center">{number}</Text>
                             </Button>
                         </Container>
