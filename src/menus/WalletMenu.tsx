@@ -8,6 +8,7 @@ import { useWalletContext } from "../contexts/WalletProvider";
 import { useToastContext } from "../contexts/ToastContainer";
 import { AlertTriangle, RefreshCw, X } from "@react-three/uikit-lucide";
 import { Gltf } from "@react-three/drei";
+import Numpad from "../components/Numpad";
 
 export default function WalletMenu() {
     const { encryptedData, deceryptPrivateKeys, password, privateKeys, importNewWallet, currentIndex, setCurrentIndex, wallet, balance } = useWalletContext()
@@ -42,7 +43,8 @@ export default function WalletMenu() {
                         <>
                             <Text textAlign="center" fontWeight={600}>{encryptedData === "" ? "You need to create a password first" : "Welcome back!"}</Text>
                             <Text fontSize={10} textAlign="center">{encryptedData === "" ? "A strong password!" : "The decentralized web awaits"}</Text>
-                            <Input type="password" placeholder="Please enter your password" value={passwordValue} onValueChange={setPassword} />
+                            <Input type="password" placeholder="Please enter your PIN" value={passwordValue} onValueChange={setPassword} />
+                            <Numpad value={passwordValue} onValueChange={setPassword} />
                             <Button size="md" platter onClick={() => {
                                 const ok = deceryptPrivateKeys(passwordValue)
                                 if (!ok) toast({ text: "Incorrect password", variant: "error" })
