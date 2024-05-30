@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { Suspense, useCallback, useEffect, useMemo } from "react";
 import { formatUnits } from "ethers"
 import Player from "../../components/Player";
 import { useAppContext } from "../../contexts/AppProvider";
 import { RigidBody } from "@react-three/rapier";
 import { CollectionCategory, ListingTokenEvent } from "../../types/graphql";
 import { GroupProps } from "@react-three/fiber";
-import { Float, useGLTF } from "@react-three/drei";
+import { Float, PositionalAudio, useGLTF } from "@react-three/drei";
 import { Container, MetalMaterial, Root, Text } from "@react-three/uikit";
 import { Button } from "../../components/default/button";
 import { Eye, Heart, PackageMinus, PackagePlus, ShoppingCart } from "@react-three/uikit-lucide";
@@ -56,6 +56,9 @@ export function Component() {
             </RigidBody>
             <Player initial={[0, 4, 1]} />
             <NFTs NFT={NFT} positions={positions} rotations={rotations} category={CollectionCategory.PFP_MODEL} />
+            <Suspense>
+                <PositionalAudio url="/audios/background/Space - Cinematic Ambient Background.mp3" loop autoplay position={[0, 10, 0]} />
+            </Suspense>
         </>
     )
 }

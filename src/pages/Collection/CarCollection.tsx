@@ -1,9 +1,9 @@
-import { useLayoutEffect, useRef } from "react";
+import { Suspense, useLayoutEffect, useRef } from "react";
 import * as THREE from "three"
 import Player from "../../components/Player";
 import { useAppContext } from "../../contexts/AppProvider";
 import { RigidBody } from "@react-three/rapier";
-import { Gltf, useGLTF } from "@react-three/drei";
+import { Gltf, PositionalAudio, useGLTF } from "@react-three/drei";
 import NFTs, { NFTProps } from "../../components/NFTs";
 import { CollectionCategory } from "../../types/graphql";
 import { Container, DefaultProperties, Root, Text } from "@react-three/uikit";
@@ -57,6 +57,9 @@ export function Component() {
             </RigidBody>
             <NFTs NFT={NFT} positions={positions} rotations={rotations} category={CollectionCategory.CAR} />
             <Player initial={[0, 1, 5]} />
+            <Suspense>
+                <PositionalAudio url="/audios/background/TokyoDrift-TeriyakiBoyz_mucu.mp3" loop autoplay position={[0, 20, 0]} />
+            </Suspense>
         </>
     )
 }

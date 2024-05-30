@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three"
 import { formatUnits } from "ethers"
 import Player from "../../components/Player";
@@ -14,6 +14,7 @@ import { Eye, Heart, PackageMinus, PackagePlus, ShoppingCart } from "@react-thre
 import { getIPFSUri } from "../../utils";
 import { NavigateFunction } from "react-router-dom";
 import NFTs from "../../components/NFTs";
+import { PositionalAudio } from "@react-three/drei";
 
 const positions: [number, number, number][] = [
     [0, 2.6, -8.31],
@@ -49,6 +50,9 @@ export function Component() {
             </RigidBody>
             <Player initial={[0, 4, 1]} />
             <NFTs NFT={NFT} positions={positions} rotations={rotations} category={CollectionCategory.FUTURISTIC} />
+            <Suspense>
+                <PositionalAudio url="/audios/background/Futuristic Music - Sci-fi City.ogg" loop autoplay position={[0, 15, 0]} />
+            </Suspense>
         </>
     )
 }
