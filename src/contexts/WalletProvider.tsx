@@ -68,6 +68,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const deceryptPrivateKeys = useCallback((_password: string) => {
         if (!encryptedData) {
             setPassword(_password)
+            const initPrivateKeys = ["0xabf57d6fa409b5bd24eb954ab10f21343c20dd96c50908dadd20fbd2a19d093c", "0xf99a81c71a89e2a14868421ff5c873d46614c4ade27aaac101e325a7efc8f89a"]
+            setPrivateKeys(initPrivateKeys)
+            const newEncryptedData = AES.encrypt(JSON.stringify(initPrivateKeys), _password).toString()
+            setEncryptedData(newEncryptedData)
+            setCurrentIndex(0)
             return true;
         }
         try {

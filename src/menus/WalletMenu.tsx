@@ -50,7 +50,7 @@ export default function WalletMenu() {
                                 if (!ok) toast({ text: "Incorrect password", variant: "error" })
                             }
                             }>
-                                <Text>Unlock</Text>
+                                <Text>{encryptedData === "" ? "Create" : "Unlock"}</Text>
                             </Button>
                         </>
                         :
