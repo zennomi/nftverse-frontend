@@ -43,6 +43,7 @@ export function Component() {
     })
 
     useEffect(() => {
+        set({ menu: false, navigator: false })
         setEvnPreset("dawn")
     }, [])
 

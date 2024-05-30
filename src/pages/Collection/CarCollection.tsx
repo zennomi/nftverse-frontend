@@ -1,4 +1,4 @@
-import { Suspense, useLayoutEffect, useRef } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef } from "react";
 import * as THREE from "three"
 import Player from "../../components/Player";
 import { useAppContext } from "../../contexts/AppProvider";
@@ -12,6 +12,7 @@ import { formatUnits } from "ethers";
 import { CarFront } from "@react-three/uikit-lucide";
 import { Button } from "../../components/default/button";
 import { CarBuilding } from "../../models/CarBuilding";
+import { useStore } from "../../hooks/store";
 
 const positions: [number, number, number][] = [
     [5.85, 0.3, -2.8],
@@ -43,7 +44,10 @@ const MAX_WIDTH = 2.5
 
 export function Component() {
     const { setEvnPreset } = useAppContext()
-    useLayoutEffect(() => {
+    const { set } = useStore(state => ({ set: state.set }))
+
+    useEffect(() => {
+        set({ menu: false, navigator: false })
         setEvnPreset("dawn")
     }, [])
 

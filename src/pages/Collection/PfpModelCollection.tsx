@@ -13,6 +13,7 @@ import { Lab } from "../../models/Lab";
 import { last } from "lodash";
 import { NavigateFunction } from "react-router-dom";
 import NFTs from "../../components/NFTs";
+import { useStore } from "../../hooks/store";
 
 const positions: [number, number, number][] = [
     [-3.5, 1, 0.14],
@@ -42,9 +43,11 @@ const rotations: [number, number, number][] = [
 
 export function Component() {
     const { setEvnPreset } = useAppContext()
+    const { set } = useStore(state => ({ set: state.set }))
 
     useEffect(() => {
         setEvnPreset("sunset")
+        set({ menu: false, navigator: false })
     }, [])
 
     return (
@@ -57,7 +60,7 @@ export function Component() {
             <Player initial={[0, 4, 1]} />
             <NFTs NFT={NFT} positions={positions} rotations={rotations} category={CollectionCategory.PFP_MODEL} />
             <Suspense>
-                <PositionalAudio url="/audios/background/Space - Cinematic Ambient Background.mp3" loop autoplay position={[0, 10, 0]} />
+                <PositionalAudio url="/audios/background/Space - Cinematic Ambient Background.mp3" loop autoplay position={[0, 5, 0]} />
             </Suspense>
         </>
     )
