@@ -9,7 +9,7 @@ export * from "./apollo"
 
 const GET_LISTED_TOKENS = (after?: string) => gql`
 query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCategory = ART, $first: Int = 10${after ? ', $after: String = "1"' : ''}) {
-  listEventsConnection(orderBy: timestamp_DESC, where: {seller_not_eq: $seller_not_eq, collection: {category_eq: $category_eq}}, first: $first${after ? ', after: $after' : ''}) {
+  listEventsConnection(orderBy: timestamp_DESC, where: {status_eq: LISTING, seller_not_eq: $seller_not_eq, collection: {category_eq: $category_eq}}, first: $first${after ? ', after: $after' : ''}) {
     totalCount
     pageInfo {
       startCursor
@@ -55,7 +55,7 @@ query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCate
 
 const GET_OWNED_LISTING_TOKENS = (after?: string) => gql`
 query GetListingTokens($seller_eq: String = "", $first: Int = 10${after ? ', $after: String = "1"' : ''}) {
-  listEventsConnection(orderBy: timestamp_DESC, where: {seller_eq: $seller_eq}, first: $first${after ? ', after: $after' : ''}) {
+  listEventsConnection(orderBy: timestamp_DESC, where: {status_eq: LISTING, seller_eq: $seller_eq}, first: $first${after ? ', after: $after' : ''}) {
     totalCount
     pageInfo {
       startCursor
