@@ -11,6 +11,7 @@ import { useFrame } from "@react-three/fiber";
 import { formatUnits } from "ethers";
 import { CarFront } from "@react-three/uikit-lucide";
 import { Button } from "../../components/default/button";
+import { CarBuilding } from "../../models/CarBuilding";
 
 const positions: [number, number, number][] = [
     [5.85, 0.3, -2.8],
@@ -52,6 +53,7 @@ export function Component() {
             <directionalLight position={[-0.5, 1, 1]} color="#FFFFFF" intensity={0.6} castShadow />
             <RigidBody mass={1} type="fixed" colliders={"trimesh"}>
                 <Gltf src="/models/TOYOTA Booth Design- KUWAIT - AL-SAYER.glb" position={[0, 0.2, 0]} />
+                <CarBuilding scale={0.07} position={[6, -0.2, 0]} />
             </RigidBody>
             <NFTs NFT={NFT} positions={positions} rotations={rotations} category={CollectionCategory.CAR} />
             <Player initial={[0, 1, 5]} />
