@@ -12,9 +12,13 @@ const vector2 = new THREE.Vector2()
 export default function InputSource({ inputSource }: { inputSource: XRInputSource, body: RefObject<RapierRigidBody> }) {
     const inputSourceId = getInputSourceId(inputSource)
     const reader = useXRGamepadReader(inputSource)
-    const { onToggleMenu, } = useStore((state) => ({ onToggleMenu: state.actions.onToggleMenu, }))
+    const { onToggleMenu, onToggleNavigator } = useStore((state) => ({ onToggleMenu: state.actions.onToggleMenu, onToggleNavigator: state.actions.onToggleNavigator }))
     useXRGamepadButton(inputSource, "a-button", () => {
         onToggleMenu()
+    })
+
+    useXRGamepadButton(inputSource, "b-button", () => {
+        onToggleNavigator()
     })
 
     useFrame(() => {
