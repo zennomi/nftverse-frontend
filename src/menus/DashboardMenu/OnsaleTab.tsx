@@ -114,7 +114,7 @@ export default function OnsaleTab() {
                 </CardContent>
             </Card>
             {
-                loading && <LoadingScreen />
+                loading && <LoadingScreen distanceToCamera={0.5} />
             }
         </>
     )

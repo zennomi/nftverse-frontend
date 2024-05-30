@@ -46,6 +46,7 @@ export default function OwnedTab() {
     const handleListClick = useCallback(async () => {
         if (!wallet || !token) return;
         setLoading(true)
+        setToken(null)
         try {
             const values = getValues()
             if (values.payment !== ZeroAddress) {
@@ -55,7 +56,6 @@ export default function OwnedTab() {
             }
             reset()
             await mutate({ items: data.items.filter((t: RaribleItem) => t.id !== token.id) }, { revalidate: false })
-            setToken(null)
             toast({ text: "List successfully", variant: "success" })
         } catch (error: any) {
             console.error(error)
@@ -184,7 +184,7 @@ export default function OwnedTab() {
                 </CardContent>
             </Card>
             {
-                loading && <LoadingScreen />
+                loading && <LoadingScreen distanceToCamera={0.5} />
             }
         </>
     )
