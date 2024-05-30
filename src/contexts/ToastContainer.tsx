@@ -72,12 +72,11 @@ export default function ToastContainer({ children }: { children: React.ReactNode
 
     return (
         <ToastContext.Provider value={{ toast }}>
-            <Fullscreen flexDirection="column" justifyContent="flex-end" alignContent="center" alignItems="center" >
+            <Fullscreen flexDirection="column" justifyContent="flex-end" alignContent="center" alignItems="center" distanceToCamera={0.5} paddingBottom={80}>
                 <Container flexGrow={1} width={300} paddingBottom={4} flexDirection="column" justifyContent="flex-end" alignContent="center" alignItems="center" gap={3}>
                     {
                         toasts.map((noti => {
                             const variant = variants[noti.variant]
-
                             return (
                                 <Container key={noti.id} backgroundColor={variant.backgroundColor} padding={8} borderRadius={8} borderBend={4} gap={8} alignItems="center" alignContent="center">
                                     {variant.icon}

@@ -66,7 +66,7 @@ export default function Player({ initial, initialRotation }: { initial?: Vector3
                 >
                     <NonImmersiveCamera />
                     <ImmersiveSessionOrigin
-                        position={[0, -1.5, 0]}
+                        position={[0, -0.5, 0]}
                     >
                         {
                             inputSources.map(inputSource => <InputSource key={getInputSourceId(inputSource)} inputSource={inputSource} body={ref} />)

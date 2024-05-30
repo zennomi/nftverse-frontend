@@ -43,8 +43,9 @@ const MAX_WIDTH = 2.5
 export function Component() {
     const { setEvnPreset } = useAppContext()
     useLayoutEffect(() => {
-        setEvnPreset("studio")
+        setEvnPreset("dawn")
     }, [])
+
     return (
         <>
             <ambientLight intensity={1} color="#BBBBBB" />

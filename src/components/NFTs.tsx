@@ -43,7 +43,7 @@ export default function NFTs({ NFT, positions, rotations, category }: {
 
     const { wallet } = useWalletContext()
     const [page, setPage] = useState<number>(1)
-    const { data, updateQuery } = useListedTokens({ after: page === 1 ? undefined : ((page - 1) * PAGE_LIMIT - 1).toString(), first: PAGE_LIMIT, category_eq: category, seller_not_eq: wallet?.address })
+    const { data, updateQuery } = useListedTokens({ after: page === 1 ? undefined : ((page - 1) * PAGE_LIMIT).toString(), first: PAGE_LIMIT, category_eq: category, seller_not_eq: wallet?.address })
     const { cart, addToCart: add, removeFromCart: remove, currentIndex, privateKeys } = useWalletContext()
     const { toast } = useToastContext()
     const [buyingToken, setBuyingToken] = useState<ListingTokenEvent | null>(null)
@@ -159,7 +159,7 @@ export default function NFTs({ NFT, positions, rotations, category }: {
                             <CardFooter flexDirection="column" gap={4}>
                                 {
                                     currentIndex >= 0 ?
-                                        <Button gap={4} flexDirection="row-reverse" width="100%" onClick={buy}>
+                                        <Button gap={4} flexDirection="row-reverse" width="100%" onClick={buy} disabled={loading}>
                                             <Text>Buy NFT</Text>
                                             <Check height={16} width={16} />
                                         </Button> :
