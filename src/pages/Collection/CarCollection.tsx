@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import * as THREE from "three"
 import Player from "../../components/Player";
 import { useAppContext } from "../../contexts/AppProvider";
 import { RigidBody } from "@react-three/rapier";
-import { Center, Gltf, useGLTF } from "@react-three/drei";
+import { Gltf, useGLTF } from "@react-three/drei";
 import NFTs, { NFTProps } from "../../components/NFTs";
 import { CollectionCategory } from "../../types/graphql";
 import { Container, DefaultProperties, Root, Text } from "@react-three/uikit";
@@ -58,7 +58,7 @@ export function Component() {
     )
 }
 
-export function NFT({ token, index, navigate, ...props }: NFTProps) {
+export function NFT({ token, index, navigate, handleBuyClick, ...props }: NFTProps) {
     const src = token.token.animation ? token.token.animation : ""
 
     const outer = useRef<THREE.Group>(null!)
@@ -124,7 +124,7 @@ export function NFT({ token, index, navigate, ...props }: NFTProps) {
                 <Root width={250} height={350} backgroundColor="MidnightBlue" padding={20} flexDirection="column">
                     <DefaultProperties color="cyan" >
                         <Container flexDirection="column" borderWidth={1} borderColor="cyan" padding={10}>
-                            <Container gap={8}>
+                            <Container gap={8} cursor="pointer" onClick={() => navigate(`/xr/physics/token/futuristic/${token.token.id}`)}>
                                 <CarFront />
                                 <Text fontSize={20} fontWeight={500} marginBottom={10}>{token.token.name || `#${token.token.tokenId}`}</Text>
                             </Container>
@@ -138,7 +138,7 @@ export function NFT({ token, index, navigate, ...props }: NFTProps) {
                             }
                             <Container justifyContent="space-between">
                                 <Text>Price:</Text>
-                                <Button variant="ghost" borderWidth={2} padding={8} borderColor="cyan" borderRadius={8} marginLeft={8} onClick={() => navigate(`/xr/physics/token/futuristic/${token.token.id}`)}>
+                                <Button hover={{ backgroundOpacity: 0.2 }} variant="ghost" borderWidth={2} padding={8} borderColor="cyan" borderRadius={8} marginLeft={8} onClick={handleBuyClick}>
                                     <Text fontWeight={500}>{formatUnits(token.price, token.payToken.decimals)} ${token.payToken.symbol}</Text>
                                 </Button>
                             </Container>
