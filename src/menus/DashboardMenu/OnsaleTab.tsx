@@ -17,7 +17,7 @@ import { RefreshCcw } from "@react-three/uikit-lucide";
 export default function OnsaleTab() {
     const { wallet } = useWalletContext()
     const address = wallet?.address || ZeroAddress
-    const { data, updateQuery } = useOwnedListingTokens({ seller_eq: address, first: 50, })
+    const { data, updateQuery } = useOwnedListingTokens({ seller_eq: address, first: 10, })
     const [token, setToken] = useState<ListingTokenEvent | null>(null)
     const { toast } = useToastContext()
     const [loading, setLoading] = useState<boolean>(false)

@@ -176,7 +176,8 @@ export const useOwnedTokens = ({ address, continuation }: { address: string, con
   params: {
     blockchains: "ETHEREUM",
     owner: `ETHEREUM:${address}`,
-    continuation
+    continuation,
+    size: 10
   }
 }).then(res => res.data))
 
