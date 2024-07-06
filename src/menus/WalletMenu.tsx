@@ -3,15 +3,15 @@ import { Card } from "../components/apfel/card";
 import { Input } from "../components/apfel/input";
 import { Suspense, useState } from "react";
 import { Button } from "../components/apfel/button";
-import { Wallet, formatEther } from "ethers"
+import { Wallet, formatEther, formatUnits } from "ethers"
 import { useWalletContext } from "../contexts/WalletProvider";
 import { useToastContext } from "../contexts/ToastContainer";
-import { AlertTriangle, RefreshCw, X } from "@react-three/uikit-lucide";
+import { AlertTriangle, RefreshCw, Trash, X } from "@react-three/uikit-lucide";
 import { Gltf } from "@react-three/drei";
 import Numpad from "../components/Numpad";
 
 export default function WalletMenu() {
-    const { encryptedData, deceryptPrivateKeys, password, privateKeys, importNewWallet, currentIndex, setCurrentIndex, wallet, balance } = useWalletContext()
+    const { encryptedData, deceryptPrivateKeys, password, privateKeys, importNewWallet, currentIndex, setCurrentIndex, wallet, balance, assets, removeWallet } = useWalletContext()
     const { toast } = useToastContext()
     const [passwordValue, setPassword] = useState("")
     const [privateKey, setPrivateKey] = useState("")
@@ -59,7 +59,7 @@ export default function WalletMenu() {
                             <Button positionType="absolute" positionRight={5} positionTop={5} size="sm" padding={4} onClick={() => setManageWallet(false)}>
                                 <X />
                             </Button>
-                            <Container flexDirection="column" gap={8}>
+                            <Container flexDirection="column" gap={8} marginTop={16}>
                                 {
                                     privateKeys.length > 0 ? privateKeys.map((key, index) => {
                                         const selected = index === currentIndex
@@ -95,6 +95,26 @@ export default function WalletMenu() {
                                 <Text textAlign="center" fontSize={32}>
                                     {formatEther(balance).slice(0, 7)} ETH
                                 </Text>
+                                <Container flexDirection="column" gapRow={8}>
+                                    {
+                                        assets.map(asset => (
+                                            <Container key={asset.address} backgroundColor="#BBBBBB" backgroundOpacity={0.2} padding={8} borderRadius={8}>
+                                                <Container flexDirection="column">
+                                                    <Text fontWeight={600}>{asset.name}</Text>
+                                                    <Text>{formatUnits(asset.balance, asset.decimals)} ${asset.symbol}</Text>
+                                                </Container>
+                                            </Container>
+                                        ))
+                                    }
+                                </Container>
+                                <Container justifyContent="flex-end">
+                                    {privateKeys.length > 1 &&
+                                        <Button size="xs" platter gap={4} onClick={() => removeWallet(currentIndex)}>
+                                            <Text>Remove</Text>
+                                            <Trash width={8} />
+                                        </Button>
+                                    }
+                                </Container>
                             </>
                         )
                 }
