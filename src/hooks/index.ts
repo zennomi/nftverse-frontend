@@ -53,9 +53,9 @@ query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCate
 }
 `
 
-const GET_OWNED_LISTING_TOKENS = (after?: string) => gql`
-query GetListingTokens($seller_eq: String = "", $first: Int = 10${after ? ', $after: String = "1"' : ''}) {
-  listEventsConnection(orderBy: timestamp_DESC, where: {status_eq: LISTING, seller_eq: $seller_eq}, first: $first${after ? ', after: $after' : ''}) {
+const GET_OWNED_LISTING_TOKENS = gql`
+query GetListingTokens($seller_eq: String = "", $first: Int = 10, $after: String = "1") {
+  listEventsConnection(orderBy: timestamp_DESC, where: {seller_eq: $seller_eq, status_in: [LISTING, AUCTIONING]}, first: $first, after: $after) {
     totalCount
     pageInfo {
       startCursor
@@ -85,6 +85,16 @@ query GetListingTokens($seller_eq: String = "", $first: Int = 10${after ? ', $af
           id
           name
           symbol
+        }
+        status
+        auctionData {
+          endTime
+          minBid
+          startPrice
+          startTime
+        }
+        bidderEvents(orderBy: timestamp_DESC) {
+          bidder
         }
       }
     }
@@ -162,7 +172,7 @@ export const useListedTokens = ({ first, after, seller_not_eq, category_eq }:
   { first?: number, after?: string, seller_not_eq?: string, category_eq?: CollectionCategory }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after?: string, seller_not_eq?: string, category_eq?: CollectionCategory }>(GET_LISTED_TOKENS(after), { variables: { first, after, seller_not_eq, category_eq } })
 
 export const useOwnedListingTokens = ({ first, after, seller_eq, }:
-  { first?: number, after?: string, seller_eq?: string, }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after?: string, seller_eq?: string, }>(GET_OWNED_LISTING_TOKENS(after), { variables: { first, after, seller_eq, } })
+  { first?: number, after?: string, seller_eq?: string, }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after: string | null, seller_eq?: string, }>(GET_OWNED_LISTING_TOKENS, { variables: { first, after: after || null, seller_eq, } })
 
 export const usePaymentTokens = () => useQuery<{ paymentTokens: { decimals: number, id: string, name: string, symbol: string }[] }>(GET_PAYMENT_TOKENS)
 

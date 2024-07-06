@@ -7,15 +7,16 @@ import { useCallback, useMemo, useState } from "react";
 import { ZeroAddress, isError, parseUnits } from "ethers";
 import { RaribleItem } from "../../types/rarible";
 import { colors } from "../../components/default/theme";
-import { RefreshCcw, Send } from "@react-three/uikit-lucide";
+import { Gavel, RefreshCcw, Send } from "@react-three/uikit-lucide";
 import { Input } from "../../components/default/input";
 import { Label } from "../../components/default/label";
 import { RadioGroup, RadioGroupItem } from "../../components/default/radio-group";
 import { Controller, useForm } from "react-hook-form";
-import { listNFT } from "../../utils/ethers";
+import { auctionNFT, listNFT } from "../../utils/ethers";
 import { useToastContext } from "../../contexts/ToastContainer";
 import LoadingScreen from "../../components/LoadingScreen";
 import { getWeservUrl } from "../../utils";
+import { Switch } from "../../components/default/switch";
 
 type TokenType = RaribleItem & { preview: string }
 
@@ -27,11 +28,13 @@ export default function OwnedTab() {
     const { toast } = useToastContext()
     const { data: { paymentTokens } = { paymentTokens: [] } } = usePaymentTokens()
     const [loading, setLoading] = useState<boolean>(false)
+    const [isAuction, setAuction] = useState(false)
 
     const { control, getValues, reset } = useForm({
         defaultValues: {
             price: "",
-            payment: ZeroAddress
+            payment: ZeroAddress,
+            duration: "30"
         }
     });
 
@@ -52,11 +55,14 @@ export default function OwnedTab() {
             if (values.payment !== ZeroAddress) {
                 const paymentToken = paymentTokens.find(t => t.id === values.payment)
                 if (!paymentToken) return;
-                await listNFT(token, paymentToken.id, parseUnits(values.price, paymentToken.decimals), wallet.privateKey)
+                if (isAuction)
+                    await auctionNFT(token, paymentToken.id, parseUnits(values.price, paymentToken.decimals), Number(values.duration), wallet.privateKey);
+                else
+                    await listNFT(token, paymentToken.id, parseUnits(values.price, paymentToken.decimals), wallet.privateKey)
             }
             reset()
             await mutate({ items: data.items.filter((t: RaribleItem) => t.id !== token.id) }, { revalidate: false })
-            toast({ text: "List successfully", variant: "success" })
+            toast({ text: isAuction ? "Create auction successfully" : "List successfully", variant: "success" })
         } catch (error: any) {
             console.error(error)
             if (isError(error, "CALL_EXCEPTION")) {
@@ -66,7 +72,7 @@ export default function OwnedTab() {
             }
         }
         setLoading(false)
-    }, [wallet, getValues, token, paymentTokens])
+    }, [wallet, getValues, token, paymentTokens, isAuction])
 
     return (
         <>
@@ -101,7 +107,13 @@ export default function OwnedTab() {
                                     <Text fontWeight={500}>{token.meta.name || `#${token.tokenId}`}</Text>
 
                                     <Card borderWidth={1} borderColor={colors.input} backgroundColor={colors.secondary} borderRadius={4} padding={8} marginTop={12}>
-                                        <Container flexDirection="column" gap={4}>
+                                        <Container flexDirection="column" gap={8}>
+                                            <Container flexDirection="row" alignItems="center" gap={8}>
+                                                <Switch checked={isAuction} onCheckedChange={(val) => setAuction(val)} />
+                                                <Label>
+                                                    <Text>Auction Mode</Text>
+                                                </Label>
+                                            </Container>
                                             <Container flexDirection="column" gap={4}>
                                                 <Label><Text>Price</Text></Label>
                                                 <Controller
@@ -116,11 +128,6 @@ export default function OwnedTab() {
                                                 control={control}
                                                 render={({ field, }) =>
                                                     <RadioGroup onValueChange={field.onChange}>
-                                                        <RadioGroupItem value={ZeroAddress}>
-                                                            <Label>
-                                                                <Text>ETH</Text>
-                                                            </Label>
-                                                        </RadioGroupItem>
                                                         {
                                                             paymentTokens.map(t =>
                                                                 <RadioGroupItem key={t.id} value={t.id}>
@@ -133,19 +140,31 @@ export default function OwnedTab() {
                                                     </RadioGroup>
                                                 }
                                             />
+                                            {
+                                                isAuction &&
+                                                <Container flexDirection="column" gap={4}>
+                                                    <Label><Text>Duration (mins)</Text></Label>
+                                                    <Controller
+                                                        name="duration"
+                                                        control={control}
+                                                        render={({ field, }) => <Input placeholder="Duration" {...field} onValueChange={field.onChange} />}
+                                                    />
+                                                </Container>
+                                            }
                                         </Container>
                                         <Container flexDirection="row" flexWrap="wrap" marginTop={12}>
-                                            <Container width="50%" paddingRight={4}>
-                                                <Button size="sm" width="100%" gap={4} onClick={handleListClick}>
-                                                    <Send width={12} />
-                                                    <Text fontSize={12}>List</Text>
-                                                </Button>
-                                            </Container>
-                                            <Container width="50%" paddingLeft={4}>
-                                                <Button size="sm" width="100%" gap={4} onClick={() => { console.log(getValues()) }}>
-                                                    <Send width={12} />
-                                                    <Text fontSize={12}>Auction</Text>
-                                                </Button>
+                                            <Container paddingRight={4}>
+                                                {
+                                                    isAuction ?
+                                                        <Button size="sm" width="100%" gap={4} onClick={handleListClick}>
+                                                            <Gavel width={12} />
+                                                            <Text fontSize={12}>Auction</Text>
+                                                        </Button> :
+                                                        <Button size="sm" width="100%" gap={4} onClick={handleListClick}>
+                                                            <Send width={12} />
+                                                            <Text fontSize={12}>List</Text>
+                                                        </Button>
+                                                }
                                             </Container>
                                         </Container>
                                     </Card>

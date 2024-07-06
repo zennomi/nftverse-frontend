@@ -8,6 +8,14 @@ export type ListingTokenEvent = {
     seller: string,
     timestamp: Date,
     price: string,
+    status: ListEventStatus,
+    auctionData?: {
+        endTime: string,
+        minBid: string,
+        startPrice: string,
+        startTime: string
+    },
+    bidderEvents: { bidder: string }[],
     token: {
         id: string,
         name?: string,
@@ -36,6 +44,13 @@ export type ConnectionQuery<T> = {
         cursor: number
         node: T
     }[]
+}
+
+export enum ListEventStatus {
+    LISTING = "LISTING",
+    AUCTIONING = "AUCTIONING",
+    SOLD = "SOLD",
+    CANCELED = "CANCELED",
 }
 
 export enum CollectionCategory {

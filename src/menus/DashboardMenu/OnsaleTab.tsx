@@ -3,15 +3,16 @@ import { CardHeader, CardTitle, CardDescription, CardContent, Card } from "../..
 import { Button } from "../../components/default/button";
 import { useOwnedListingTokens, useRefetchQueries } from "../../hooks";
 import { useWalletContext } from "../../contexts/WalletProvider";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ZeroAddress, formatUnits, isError } from "ethers";
 import { colors } from "../../components/default/theme";
 import { useToastContext } from "../../contexts/ToastContainer";
 import { ListingTokenEvent } from "../../types/graphql";
 import { getIPFSUri, getWeservUrl } from "../../utils";
-import { cancelListedNFT } from "../../utils/ethers";
+import { cancelListedNFT, endAuction } from "../../utils/ethers";
 import LoadingScreen from "../../components/LoadingScreen";
 import { RefreshCcw } from "@react-three/uikit-lucide";
+import { Badge } from "../../components/default/badge";
 
 
 export default function OnsaleTab() {
@@ -24,6 +25,15 @@ export default function OnsaleTab() {
 
     const refresh = useRefetchQueries()
 
+    const status = useMemo<number>(() => {
+        // 0: nothing, 1: can cancel, 2: can not cancel and end, 3: can end 
+        if (!token) return 0
+        if (!token.auctionData) return 1
+        if (token.bidderEvents.length === 0) return 1
+        if (new Date(token.auctionData.endTime) <= new Date()) return 2
+        return 3
+    }, [token])
+
     const handleCancelClick = useCallback(async () => {
         if (!wallet || !token) return;
         setLoading(true)
@@ -32,6 +42,25 @@ export default function OnsaleTab() {
             updateQuery(prev => ({ ...prev, listEventsConnection: { ...prev.listEventsConnection, edges: [...prev.listEventsConnection.edges.filter(e => e.node.id !== token.id)] } }))
             setToken(null)
             toast({ text: "Cancel successfully", variant: "success" })
+        } catch (error: any) {
+            console.error(error)
+            if (isError(error, "CALL_EXCEPTION")) {
+                toast({ text: error.shortMessage || "Error", variant: "error" })
+            } else {
+                toast({ text: "Error", variant: "error" })
+            }
+        }
+        setLoading(false)
+    }, [wallet, token, toast])
+
+    const handleEndAuctionClick = useCallback(async () => {
+        if (!wallet || !token) return;
+        setLoading(true)
+        try {
+            await endAuction(token, wallet.privateKey)
+            updateQuery(prev => ({ ...prev, listEventsConnection: { ...prev.listEventsConnection, edges: [...prev.listEventsConnection.edges.filter(e => e.node.id !== token.id)] } }))
+            setToken(null)
+            toast({ text: "End auction successfully", variant: "success" })
         } catch (error: any) {
             console.error(error)
             if (isError(error, "CALL_EXCEPTION")) {
@@ -75,9 +104,23 @@ export default function OnsaleTab() {
                                     <Text fontSize={10} color={colors.mutedForeground}>{token.collection.name}</Text>
                                     <Text fontWeight={500}>{`#${token.token.tokenId}`}</Text>
                                     <Card borderRadius={8} backgroundColor={colors.muted} padding={8}>
-                                        <Text fontSize={8} color={colors.primary} fontWeight={500}>Price</Text>
+                                        <Text fontSize={8} color={colors.primary} fontWeight={500}>{token.auctionData ? "Current price" : "Price"}</Text>
                                         <Text fontWeight={600}>{formatUnits(token.price, token.payToken.decimals)} {token.payToken.symbol}</Text>
-                                        <Button size="sm" marginTop={12} onClick={handleCancelClick}><Text fontSize={12} >Cancel</Text></Button>
+                                        {
+                                            token.auctionData &&
+                                            <>
+                                                <Text fontSize={8}>{token.bidderEvents.length.toString()} users joined auction</Text>
+                                                <Text fontSize={8}>End at {(new Date(token.auctionData.endTime)).toLocaleString()}</Text>
+                                            </>
+                                        }
+                                        {
+                                            status == 0 ?
+                                                <Button size="sm" marginTop={12} onClick={handleCancelClick} disabled={loading}>
+                                                    <Text fontSize={12} >{token.auctionData ? "Cancel auction" : "Cancel listing"}</Text>
+                                                </Button>
+                                                : status == 2 &&
+                                                <Button size="sm" marginTop={12} onClick={handleEndAuctionClick} disabled={loading}><Text fontSize={12} >End auction</Text></Button>
+                                        }
                                     </Card>
                                 </Container>
                             </Container>
@@ -88,6 +131,9 @@ export default function OnsaleTab() {
                                         data?.listEventsConnection.edges.map(({ node: t }) => (
                                             <Container key={t.id} padding={4} width="33%" flexShrink={0}>
                                                 <Card flexDirection="column" gap={12} borderRadius={8} padding={4} borderColor={colors.border} borderWidth={1} width="100%" >
+                                                    <Badge positionType="absolute" zIndexOffset={100} borderWidth={0} positionTop={8} positionRight={8}>
+                                                        <Text fontSize={8}>{t.auctionData ? "AUCTION" : "LIST"}</Text>
+                                                    </Badge>
                                                     <Container width="100%" borderRadius={6} backgroundColor={colors.destructiveForeground}>
                                                         <Image
                                                             borderRadius={6}
