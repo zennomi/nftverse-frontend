@@ -75,6 +75,10 @@ export type Token = {
         traitType: string
         value: string
     }[]
+    file?: {
+        mime: string
+        path: string
+    }
 }
 
 export type Collection = {

@@ -9,7 +9,6 @@ const RPC_URL = "https://rpc.sepolia.org/"
 
 export const provider = new JsonRpcProvider(RPC_URL)
 
-
 export async function buyNFT(token: ListingTokenEvent, privateKey: string) {
     const wallet = new Wallet(privateKey, provider)
     const marketplaceContract = new Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, wallet)
@@ -17,7 +16,14 @@ export async function buyNFT(token: ListingTokenEvent, privateKey: string) {
     await marketplaceContract.buyNFT(token.collection.id, token.token.tokenId, token.payToken.id, token.price)
 }
 
-export async function erc20Approve(tokenAddress: string, amount: string, privateKey: string) {
+export async function placeBidNFT(token: ListingTokenEvent, price: bigint, privateKey: string) {
+    const wallet = new Wallet(privateKey, provider)
+    const marketplaceContract = new Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, wallet)
+    const [collection, tokenId] = token.token.id.split("-")
+    await marketplaceContract.bidPlace(collection, tokenId, price)
+}
+
+export async function erc20Approve(tokenAddress: string, amount: string | bigint, privateKey: string) {
     const wallet = new Wallet(privateKey, provider)
     const erc20 = new Contract(tokenAddress, ERC20_ABI, wallet)
 
@@ -78,5 +84,18 @@ export async function getOwnerOfToken(id: string) {
     const [collection, tokenId] = id.split("-")
     const nft = new Contract(collection, ERC721_ABI, provider)
 
-    return await nft.ownerOf(tokenId) as string
+    const owner = await nft.ownerOf(tokenId) as string
+
+    // if (owner === MARKETPLACE_ADDRESS) {
+    //     const marketplaceContract = new Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI)
+
+    //     const list = await marketplaceContract.listNfts(collection, tokenId)
+
+    //     console.log(list)
+    //     if (list.sold) return ListEventStatus.LISTING
+
+    //     return ListEventStatus.AUCTIONING
+    // }
+
+    return owner
 }

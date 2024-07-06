@@ -13,6 +13,7 @@ import { cancelListedNFT, endAuction } from "../../utils/ethers";
 import LoadingScreen from "../../components/LoadingScreen";
 import { RefreshCcw } from "@react-three/uikit-lucide";
 import { Badge } from "../../components/default/badge";
+import { useNavigate } from "react-router-dom";
 
 
 export default function OnsaleTab() {
@@ -22,6 +23,7 @@ export default function OnsaleTab() {
     const [token, setToken] = useState<ListingTokenEvent | null>(null)
     const { toast } = useToastContext()
     const [loading, setLoading] = useState<boolean>(false)
+    const navigate = useNavigate()
 
     const refresh = useRefetchQueries()
 
@@ -114,7 +116,7 @@ export default function OnsaleTab() {
                                             </>
                                         }
                                         {
-                                            status == 0 ?
+                                            status == 1 ?
                                                 <Button size="sm" marginTop={12} onClick={handleCancelClick} disabled={loading}>
                                                     <Text fontSize={12} >{token.auctionData ? "Cancel auction" : "Cancel listing"}</Text>
                                                 </Button>
@@ -122,6 +124,9 @@ export default function OnsaleTab() {
                                                 <Button size="sm" marginTop={12} onClick={handleEndAuctionClick} disabled={loading}><Text fontSize={12} >End auction</Text></Button>
                                         }
                                     </Card>
+                                    <Button marginTop={12} size="sm" onClick={() => navigate(`/xr/physics/token/futuristic/${token.token.id}`)}>
+                                        <Text fontSize={12}>Show in NFT room</Text>
+                                    </Button>
                                 </Container>
                             </Container>
                         </Container> :

@@ -133,13 +133,17 @@ query GetTokenById($id: String = "") {
       traitType
       value
     }
+    file {
+      mime
+      path
+    }
   }
 }
 `
 
 const GET_LISTING_TOKEN = gql`
 query GetListingToken($id_eq: String = "") {
-  listEvents(where: {token: {id_eq: $id_eq}}, limit: 1) {
+  listEvents(where: {token: {id_eq: $id_eq}, status_in: [LISTING, AUCTIONING]}, limit: 1, orderBy: timestamp_DESC) {
     payToken {
       decimals
       id
@@ -153,6 +157,16 @@ query GetListingToken($id_eq: String = "") {
       animation
       id
       tokenId
+    }
+    status
+    auctionData {
+      endTime
+      minBid
+      startPrice
+      startTime
+    }
+    bidderEvents(orderBy: timestamp_DESC) {
+      bidder
     }
   }
 }

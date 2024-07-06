@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useAppContext } from "../../contexts/AppProvider"
 import Player from "../../components/Player"
 import { RigidBody } from "@react-three/rapier"
@@ -9,7 +9,7 @@ import { last } from "lodash"
 import { GroupProps, useFrame } from "@react-three/fiber"
 import { useListingToken, useOwnerOfToken, useToken, useTokenActivities } from "../../hooks"
 import * as THREE from "three"
-import { getIPFSUri, shortenAddress } from "../../utils"
+import { getIPFSUri, getProxyPath, shortenAddress } from "../../utils"
 import { Container, DefaultProperties, Root, Text } from "@react-three/uikit"
 import { ArrowLeftRight, Boxes, FilePlus, FileX } from "@react-three/uikit-lucide"
 import { Card } from "../../components/default/card"
@@ -21,6 +21,12 @@ import { useToastContext } from "../../contexts/ToastContainer"
 import { MARKETPLACE_ADDRESS } from "../../configs/addresses"
 import { RatioImage } from "../../components/override/RatioImage"
 import { ErrorBoundary } from "react-error-boundary"
+import { Input } from "../../components/default/input"
+import { Label } from "../../components/default/label"
+import { formatUnits, isError, parseUnits } from "ethers"
+import { erc20Approve, placeBidNFT } from "../../utils/ethers"
+import { useApolloClient } from "@apollo/client"
+import LoadingScreen from "../../components/LoadingScreen"
 
 // export async function loader({ params }: { params: { id: string } }) {
 //     const { id } = params;
@@ -64,18 +70,24 @@ export function NFT() {
     if (!token) return <></>
 
     const image = getIPFSUri(token.image)
+    const proxyFile = token.file ? getProxyPath(token.file.path) : ""
 
     return (
         <>
-            {
-                token.animation ?
-                    <Suspense>
-                        <Model animation={token.animation} />
-                    </Suspense> :
-                    token.image && <Suspense>
-                        <FramedImage image={image} position={[0, 1.5, -3.2]} />
-                    </Suspense>
-            }
+            <Suspense>
+                {
+                    token.file &&
+                    (
+                        token.file.mime.startsWith("model/") ?
+                            <Model animation={proxyFile} /> :
+                            token.file.mime.startsWith("image/") ?
+                                <FramedImage image={proxyFile} position={[0, 1.5, -3.2]} /> :
+                                token.image ?
+                                    <FramedImage image={token.image} position={[0, 1.5, -3.2]} /> :
+                                    <></>
+                    )
+                }
+            </Suspense>
             {
                 token.image &&
                 <Suspense>
@@ -195,9 +207,21 @@ export function ActivityScreen({ token }: { token: Token }) {
     return (
         <Root width={380} height={170} backgroundColor="MidnightBlue" backgroundOpacity={0.9} paddingY={20} paddingX={40} flexDirection="column" justifyContent="flex-start">
             <DefaultProperties color="cyan">
-                <Container overflow="scroll" flexDirection="column">
+                <Container flexDirection="column">
                     <Text fontWeight={500} marginBottom={8}>Activity</Text>
-                    <Container flexDirection="column" borderColor="cyan" borderWidth={1} borderRadius={16} padding={16} gap={8}>
+                    <Container
+                        flexDirection="column"
+                        // flexGrow={1}
+                        // flexBasis={0}
+                        borderColor="cyan"
+                        borderWidth={1}
+                        borderRadius={16}
+                        padding={16}
+                        gap={8}
+                        height={100}
+                        overflow="scroll"
+                        scrollbarOpacity={0}
+                    >
                         {
                             data?.activities.map(activity => {
                                 const icon = activity["@type"] === "TRANSFER" ? <ArrowLeftRight width={16} /> :
@@ -221,7 +245,7 @@ export function ActivityScreen({ token }: { token: Token }) {
                                             <></>
 
                                 return (
-                                    <Container flexDirection="row" key={activity.cursor} alignItems="center" gap={8}>
+                                    <Container flexDirection="row" key={activity.cursor} alignItems="center" gap={8} height={16}>
                                         {icon}
                                         <Container flexDirection="column">
                                             <DefaultProperties fontSize={8}>
@@ -246,23 +270,59 @@ export function ActionScreen({ token }: { token: Token }) {
     const ref = useRef<THREE.Mesh>(null)
     const { wallet } = useWalletContext()
     const { toast } = useToastContext()
-    const { data: owner } = useOwnerOfToken(token.id)
-    const listing = owner === MARKETPLACE_ADDRESS
-    const { data } = useListingToken(token.id, !listing)
-    const isMyToken = wallet ? (wallet.address === owner || wallet.address === data?.listEvents[0]?.seller) : false
+    const { data: owner, mutate } = useOwnerOfToken(token.id)
+    const { data: listData, updateQuery } = useListingToken(token.id, owner !== MARKETPLACE_ADDRESS)
+    const [action, setAction] = useState("")
+    const [price, setPrice] = useState("0")
+    const [loading, setLoading] = useState<boolean>(false)
+    const client = useApolloClient();
+    const listEvent = listData?.listEvents[0]
 
-    const handleClickBuy = useCallback(() => {
-        if (!wallet) return toast({ text: "Open menu to connect wallet", variant: "warning" })
-    }, [wallet, token])
+    // 0: nothing, 1: normal list, 2: pending auction can cancel, 3: pending auction can not cancel, 4: ended auction
+    const sellMode = useMemo(() => {
+        if (!listData || listData.listEvents.length === 0) return 0
+        if (!listData.listEvents[0].auctionData) return 1
+        if (listData.listEvents[0].bidderEvents.length === 0) return 2
+        if (new Date(listData.listEvents[0].auctionData.endTime) < new Date()) return 4
+        return 3
+    }, [listData])
 
-    const handleClickOffer = useCallback(() => {
-        if (!wallet) return toast({ text: "Open menu to connect wallet", variant: "warning" });
-        toast({ text: "Coming soon...", variant: "info" })
-    }, [wallet, token])
+
+    const isMyToken = useMemo(() => {
+        return wallet ? (wallet.address === owner || wallet.address === listData?.listEvents[0]?.seller) : false
+    }, [wallet, listData])
+
+    console.log(isMyToken, sellMode)
 
     const handleOpenMenuClick = useCallback(() => {
         toast({ text: "Open menu to continue", variant: "info" })
     }, [])
+
+    const placeBid = useCallback(async () => {
+        setLoading(true)
+        if (!wallet || !price || !listEvent) return;
+
+        try {
+            const parsedPrice = parseUnits(price, listEvent.payToken.decimals)
+            await erc20Approve(listEvent.payToken.id, parsedPrice, wallet.privateKey)
+            await placeBidNFT(listEvent, parsedPrice, wallet.privateKey)
+            toast({ text: "Buy successfully", variant: "success" })
+            // updateQuery(_ => ({ listEvents: [] }))
+            // mutate(wallet.address)
+            setAction("")
+        } catch (error: any) {
+            console.error(error)
+            if (isError(error, "CALL_EXCEPTION")) {
+                toast({ text: error.shortMessage || "Error", variant: "error" })
+            } else {
+                toast({ text: "Error", variant: "error" })
+            }
+            await client.refetchQueries({
+                include: ["active"],
+            });
+        }
+        setLoading(false)
+    }, [wallet, client, listEvent, price])
 
     useFrame((state, delta) => {
         if (ref.current) {
@@ -285,39 +345,77 @@ export function ActionScreen({ token }: { token: Token }) {
         <mesh ref={ref} position={[-4.35, 1.37, -4.62]} rotation={[0, 1.272, 0]}>
             <Root borderRadius={32} width={370} height={170} backgroundOpacity={0.95} backgroundColor="MidnightBlue" paddingY={20} paddingX={40} flexDirection="column" justifyContent="flex-start">
                 <DefaultProperties color="cyan">
-                    <Container flexDirection="column">
-                        <Text fontWeight={500} marginBottom={8}>Action</Text>
-                        <Container flexDirection="column" gap={8}>
-                            {
-                                isMyToken && !listing &&
-                                <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={handleOpenMenuClick}>
-                                    <Text color="cyan">Listing</Text>
+                    {
+                        action === "" ?
+                            <Container flexDirection="column">
+                                <Text fontWeight={500} marginBottom={8}>Action</Text>
+                                <Container flexDirection="column" gap={8}>
+                                    {
+                                        isMyToken && !sellMode &&
+                                        <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={handleOpenMenuClick}>
+                                            <Text color="cyan">Listing</Text>
+                                        </Button>
+                                    }
+                                    {
+                                        isMyToken && (sellMode === 1 || sellMode === 2) &&
+                                        <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={handleOpenMenuClick}>
+                                            <Text color="cyan">Cancel {sellMode === 1 ? "Listing" : "Auction"}</Text>
+                                        </Button>
+                                    }
+                                    {
+                                        !isMyToken && sellMode === 1 &&
+                                        <>
+                                            <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={() => setAction("offer")}>
+                                                <Text color="cyan">Offer</Text>
+                                            </Button>
+                                            <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={() => setAction("buy")}>
+                                                <Text color="cyan">Buy</Text>
+                                            </Button>
+                                        </>
+                                    }
+                                    {
+                                        !isMyToken && sellMode === 2 &&
+                                        <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={() => setAction("placeBid")}>
+                                            <Text color="cyan">Place bid</Text>
+                                        </Button>
+                                    }
+                                </Container>
+                            </Container>
+                            :
+                            <Container flexDirection="column" gapRow={8}>
+                                {
+                                    action === "placeBid" &&
+                                    <>
+                                        <Container flexDirection="row" gap={4}>
+                                            <Label><Text>Price:</Text></Label>
+                                            <Input value={price} onValueChange={(val) => setPrice(val)} />
+                                            <Button
+                                                borderWidth={1}
+                                                backgroundOpacity={0}
+                                                hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }}
+                                                borderColor="cyan"
+                                                width="100%"
+                                                gap={8}
+                                                onClick={placeBid}
+                                                disabled={loading}
+                                            >
+                                                <Text color="cyan">Place Bid</Text>
+                                            </Button>
+                                        </Container>
+                                        <Text fontSize={8}>*Bid price must be greater than {formatUnits(listEvent!.price, listEvent!.payToken.decimals)} ${listEvent!.payToken.symbol}</Text>
+                                    </>
+                                }
+                                <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={() => setAction("")}>
+                                    <Text color="cyan">Back</Text>
                                 </Button>
-                            }
-                            {
-                                isMyToken && listing &&
-                                <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={handleOpenMenuClick}>
-                                    <Text color="cyan">Cancel Listing</Text>
-                                </Button>
-                            }
-                            {
-                                !isMyToken && !listing &&
-                                <>
-                                    <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={handleClickOffer}>
-                                        <Text color="cyan">Offer</Text>
-                                    </Button>
-                                </>
-                            }
-                            {
-                                !isMyToken && listing &&
-                                <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={handleClickBuy}>
-                                    <Text color="cyan">Buy</Text>
-                                </Button>
-                            }
-                        </Container>
-                    </Container>
+                            </Container>
+                    }
                 </DefaultProperties>
             </Root>
+            {
+                loading &&
+                <LoadingScreen />
+            }
         </mesh>
     )
 }
