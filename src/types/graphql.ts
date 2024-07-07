@@ -32,6 +32,15 @@ export type ListingTokenEvent = {
     collection: Collection
 }
 
+export type OfferEvent = {
+    id: string
+    offerer: string
+    price: string
+    timestamp: string
+    accepted: boolean | null
+    listEvent: ListingTokenEvent
+}
+
 export type ConnectionQuery<T> = {
     totalCount: number,
     pageInfo: {

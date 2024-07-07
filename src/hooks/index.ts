@@ -1,5 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
-import { CollectionCategory, ConnectionQuery, ListingTokenEvent, Token } from "../types/graphql";
+import { CollectionCategory, ConnectionQuery, ListingTokenEvent, OfferEvent, Token } from "../types/graphql";
 import useSWR from "swr/immutable";
 import axios from "axios";
 import { RaribleActivity } from "../types/rarible";
@@ -173,6 +173,46 @@ query GetListingToken($id_eq: String = "") {
 }
 `
 
+const GET_RELATED_OFFERS = gql`
+query GetRelatedOffers($after: String = "", $first: Int = 10, $user: String = "") {
+  offerEventsConnection(orderBy: timestamp_DESC, after: $after, first: $first, where:{accepted_isNull: true, AND: {offerer_eq: $user, OR: {listEvent: {seller_eq: $user, status_not_eq: SOLD}}}}) {
+    totalCount
+    pageInfo {
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
+    }
+    edges {
+      node {
+        id
+        offerer
+        price
+        timestamp
+        accepted
+        listEvent {
+          seller
+          status
+          price
+          payToken {
+            decimals
+            id
+            name
+            symbol
+          }
+          timestamp
+          token {
+            id
+            name
+            image
+          }
+        }
+      }
+    }
+  }
+}
+`
+
 const raribleAxios = axios.create({
   baseURL: `https://testnet-api.rarible.org/v0.1`,
   headers: {
@@ -194,6 +234,9 @@ export const usePaymentTokens = () => useQuery<{ paymentTokens: { decimals: numb
 export const useToken = (id: string) => useQuery<{ tokenById: Token }, { id: string }>(GET_TOKEN_BY_ID, { variables: { id } })
 
 export const useListingToken = (id: string, skip?: boolean) => useQuery<{ listEvents: ListingTokenEvent[] }, { id_eq: string }>(GET_LISTING_TOKEN, { variables: { id_eq: id }, skip })
+
+export const useRelatedOffers = ({ first, after, user }:
+  { first?: number, after?: string, user?: string, }) => useQuery<{ offerEventsConnection: ConnectionQuery<OfferEvent> }, { first?: number, after: string | null, user?: string, }>(GET_RELATED_OFFERS, { variables: { first, after: after || null, user } })
 
 // api
 export const useOwnedTokens = ({ address, continuation }: { address: string, continuation?: string }) => useSWR(`useOwnedTokens-${address}`, () => raribleAxios({

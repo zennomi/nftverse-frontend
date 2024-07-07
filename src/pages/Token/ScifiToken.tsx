@@ -24,7 +24,7 @@ import { ErrorBoundary } from "react-error-boundary"
 import { Input } from "../../components/default/input"
 import { Label } from "../../components/default/label"
 import { formatUnits, isError, parseUnits } from "ethers"
-import { erc20Approve, placeBidNFT } from "../../utils/ethers"
+import { buyNFT, erc20Approve, offerNFT, placeBidNFT } from "../../utils/ethers"
 import { useApolloClient } from "@apollo/client"
 import LoadingScreen from "../../components/LoadingScreen"
 
@@ -303,7 +303,8 @@ export function ActionScreen({ token }: { token: Token }) {
         setAction(_action)
     }, [wallet, setAction])
 
-    const placeBid = useCallback(async () => {
+    const handlePlaceBidClick = useCallback(async () => {
+        setAction("")
         setLoading(true)
         if (!wallet || !price || !listEvent) return;
 
@@ -311,10 +312,7 @@ export function ActionScreen({ token }: { token: Token }) {
             const parsedPrice = parseUnits(price, listEvent.payToken.decimals)
             await erc20Approve(listEvent.payToken.id, parsedPrice, wallet.privateKey)
             await placeBidNFT(listEvent, parsedPrice, wallet.privateKey)
-            toast({ text: "Buy successfully", variant: "success" })
-            // updateQuery(_ => ({ listEvents: [] }))
-            // mutate(wallet.address)
-            setAction("")
+            toast({ text: "Place bid successfully", variant: "success" })
         } catch (error: any) {
             console.error(error)
             if (isError(error, "CALL_EXCEPTION")) {
@@ -328,6 +326,55 @@ export function ActionScreen({ token }: { token: Token }) {
         }
         setLoading(false)
     }, [wallet, client, listEvent, price])
+
+    const handleOfferClick = useCallback(async () => {
+        setAction("")
+        setLoading(true)
+        if (!wallet || !price || !listEvent) return;
+
+        try {
+            const parsedPrice = parseUnits(price, listEvent.payToken.decimals)
+            await erc20Approve(listEvent.payToken.id, parsedPrice, wallet.privateKey)
+            await offerNFT(listEvent, parsedPrice, wallet.privateKey)
+            toast({ text: "Offer successfully", variant: "success" })
+        } catch (error: any) {
+            console.error(error)
+            if (isError(error, "CALL_EXCEPTION")) {
+                toast({ text: error.shortMessage || "Error", variant: "error" })
+            } else {
+                toast({ text: "Error", variant: "error" })
+            }
+            await client.refetchQueries({
+                include: ["active"],
+            });
+        }
+        setLoading(false)
+    }, [wallet, client, listEvent, price])
+
+    const handleBuyClick = useCallback(async () => {
+        setAction("")
+        setLoading(true)
+        if (!wallet || !price || !listEvent) return;
+
+        try {
+            await erc20Approve(listEvent.payToken.id, listEvent.price, wallet.privateKey)
+            await buyNFT(listEvent, wallet.privateKey)
+            toast({ text: "Buy successfully", variant: "success" })
+            updateQuery(_ => ({ listEvents: [] }))
+            mutate(wallet.address)
+        } catch (error: any) {
+            console.error(error)
+            if (isError(error, "CALL_EXCEPTION")) {
+                toast({ text: error.shortMessage || "Error", variant: "error" })
+            } else {
+                toast({ text: "Error", variant: "error" })
+            }
+            await client.refetchQueries({
+                include: ["active"],
+            });
+        }
+        setLoading(false)
+    }, [wallet, client, listEvent,])
 
     useFrame((state, delta) => {
         if (ref.current) {
@@ -393,26 +440,54 @@ export function ActionScreen({ token }: { token: Token }) {
                             :
                             <Container flexDirection="column" gapRow={8}>
                                 {
-                                    action === "placeBid" &&
-                                    <>
-                                        <Container flexDirection="row" gap={4}>
-                                            <Label><Text>Price:</Text></Label>
-                                            <Input value={price} onValueChange={(val) => setPrice(val)} />
-                                            <Button
-                                                borderWidth={1}
-                                                backgroundOpacity={0}
-                                                hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }}
-                                                borderColor="cyan"
-                                                width="100%"
-                                                gap={8}
-                                                onClick={placeBid}
-                                                disabled={loading}
-                                            >
-                                                <Text color="cyan">Place Bid</Text>
-                                            </Button>
-                                        </Container>
-                                        <Text fontSize={8}>*Bid price must be greater than {formatUnits(listEvent!.price, listEvent!.payToken.decimals)} ${listEvent!.payToken.symbol}</Text>
-                                    </>
+                                    action === "placeBid" ?
+                                        <>
+                                            <Container flexDirection="row" gap={4}>
+                                                <Label><Text>Price:</Text></Label>
+                                                <Input value={price} onValueChange={(val) => setPrice(val)} />
+                                                <Button
+                                                    borderWidth={1}
+                                                    backgroundOpacity={0}
+                                                    hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }}
+                                                    borderColor="cyan"
+                                                    width="100%"
+                                                    gap={8}
+                                                    onClick={handlePlaceBidClick}
+                                                    disabled={loading}
+                                                >
+                                                    <Text color="cyan">Place Bid</Text>
+                                                </Button>
+                                            </Container>
+                                            <Text fontSize={8}>*Bid price must be greater than {formatUnits(listEvent!.price, listEvent!.payToken.decimals)} ${listEvent!.payToken.symbol}</Text>
+                                        </> :
+                                        action === "buy" ?
+                                            <>
+                                                <Text>Buy this NFT for {formatUnits(listEvent!.price, listEvent!.payToken.decimals)} ${listEvent!.payToken.symbol}</Text>
+                                                <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={handleBuyClick}>
+                                                    <Text color="cyan">Sure</Text>
+                                                </Button>
+                                            </> :
+                                            action === "offer" ?
+                                                <>
+                                                    <Container flexDirection="row" gap={4}>
+                                                        <Label><Text>Price:</Text></Label>
+                                                        <Input value={price} onValueChange={(val) => setPrice(val)} />
+                                                        <Button
+                                                            borderWidth={1}
+                                                            backgroundOpacity={0}
+                                                            hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }}
+                                                            borderColor="cyan"
+                                                            width="100%"
+                                                            gap={8}
+                                                            onClick={handleOfferClick}
+                                                            disabled={loading}
+                                                        >
+                                                            <Text color="cyan">Offer</Text>
+                                                        </Button>
+                                                    </Container>
+                                                    <Text fontSize={8}>*Offer price shoule be less than {formatUnits(listEvent!.price, listEvent!.payToken.decimals)} ${listEvent!.payToken.symbol}</Text>
+                                                </> :
+                                                <></>
                                 }
                                 <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={() => setAction("")}>
                                     <Text color="cyan">Back</Text>

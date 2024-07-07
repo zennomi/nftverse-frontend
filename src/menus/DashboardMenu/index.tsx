@@ -1,10 +1,8 @@
 import { Container, Text } from "@react-three/uikit";
-import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Card } from "../../components/default/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/default/tabs";
-import { Label } from "../../components/default/label";
-import { Button } from "../../components/default/button";
 import OwnedTab from "./OwnedTab";
 import OnsaleTab from "./OnsaleTab";
+import OfferTab from "./OfferTab";
 
 export default function DashboardMenu() {
 
@@ -18,12 +16,18 @@ export default function DashboardMenu() {
                     <TabsTrigger flexGrow={1} value="onsale">
                         <Text>Onsale</Text>
                     </TabsTrigger>
+                    <TabsTrigger flexGrow={1} value="offer">
+                        <Text>Offers</Text>
+                    </TabsTrigger>
                 </TabsList>
                 <TabsContent value="owned" width="100%">
                     <OwnedTab />
                 </TabsContent>
                 <TabsContent value="onsale" width="100%">
                     <OnsaleTab />
+                </TabsContent>
+                <TabsContent value="offer" width="100%">
+                    <OfferTab />
                 </TabsContent>
             </Tabs>
         </Container>

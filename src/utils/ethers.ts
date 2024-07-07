@@ -13,7 +13,32 @@ export async function buyNFT(token: ListingTokenEvent, privateKey: string) {
     const wallet = new Wallet(privateKey, provider)
     const marketplaceContract = new Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, wallet)
 
-    await marketplaceContract.buyNFT(token.collection.id, token.token.tokenId, token.payToken.id, token.price)
+    const [collection, tokenId] = token.token.id.split("-")
+    await marketplaceContract.buyNFT(collection, tokenId, token.payToken.id, token.price)
+}
+
+export async function offerNFT(token: ListingTokenEvent, price: bigint, privateKey: string) {
+    const wallet = new Wallet(privateKey, provider)
+    const marketplaceContract = new Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, wallet)
+
+    const [collection, tokenId] = token.token.id.split("-")
+    await marketplaceContract.offerNFT(collection, tokenId, price)
+}
+
+export async function cancelOffer(id: string, privateKey: string) {
+    const wallet = new Wallet(privateKey, provider)
+    const marketplaceContract = new Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, wallet)
+
+    const [collection, tokenId] = id.split("-")
+    await marketplaceContract.cancelOfferNFT(collection, tokenId)
+}
+
+export async function acceptOffer(id: string, offerer: string, privateKey: string) {
+    const wallet = new Wallet(privateKey, provider)
+    const marketplaceContract = new Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, wallet)
+
+    const [collection, tokenId] = id.split("-")
+    await marketplaceContract.acceptOfferNFT(collection, tokenId, offerer)
 }
 
 export async function placeBidNFT(token: ListingTokenEvent, price: bigint, privateKey: string) {
