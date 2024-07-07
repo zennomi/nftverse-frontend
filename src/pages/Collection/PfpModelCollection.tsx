@@ -3,12 +3,12 @@ import { formatUnits } from "ethers"
 import Player from "../../components/Player";
 import { useAppContext } from "../../contexts/AppProvider";
 import { RigidBody } from "@react-three/rapier";
-import { CollectionCategory, ListingTokenEvent } from "../../types/graphql";
+import { CollectionCategory, ListEventStatus, ListingTokenEvent } from "../../types/graphql";
 import { GroupProps } from "@react-three/fiber";
 import { Float, PositionalAudio, useGLTF } from "@react-three/drei";
 import { Container, MetalMaterial, Root, Text } from "@react-three/uikit";
 import { Button } from "../../components/default/button";
-import { Eye, Heart, PackageMinus, PackagePlus, ShoppingCart } from "@react-three/uikit-lucide";
+import { Eye, Gavel, PackageMinus, PackagePlus, ShoppingCart } from "@react-three/uikit-lucide";
 import { Lab } from "../../models/Lab";
 import { last } from "lodash";
 import { NavigateFunction } from "react-router-dom";
@@ -120,7 +120,11 @@ export function NFT({
                                 flexDirection="row-reverse"
                             >
                                 <Text color="white" fontSize={19}>{formatUnits(token.price, token.payToken.decimals)} {token.payToken.symbol}</Text>
-                                <ShoppingCart color="white" />
+                                {
+                                    token.status === ListEventStatus.AUCTIONING ?
+                                        <Gavel color="white" /> :
+                                        <ShoppingCart color="white" />
+                                }
                             </Button>
                             {
                                 inCart
@@ -154,9 +158,6 @@ export function NFT({
                         <Container flexDirection="row" gap={3}>
                             <Button backgroundColor={'cyan'} panelMaterialClass={MetalMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} size="icon" onClick={() => navigate(`/xr/physics/token/futuristic/${token.token.id}`)}>
                                 <Eye color="white" />
-                            </Button>
-                            <Button backgroundColor={'cyan'} panelMaterialClass={MetalMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} size="icon">
-                                <Heart color="white" />
                             </Button>
                         </Container>
                     </Container>

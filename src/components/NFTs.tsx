@@ -1,8 +1,8 @@
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three"
 import { isError } from "ethers"
 import { useListedTokens } from "../hooks";
-import { CollectionCategory, ListingTokenEvent } from "../types/graphql";
+import { CollectionCategory, ListEventStatus, ListingTokenEvent } from "../types/graphql";
 import { GroupProps, Matrix4, useThree } from "@react-three/fiber";
 import { DragControls } from "@react-three/drei";
 import { Root, Text } from "@react-three/uikit";
@@ -16,6 +16,7 @@ import Navigator from "../components/Navigator";
 import { useApolloClient } from "@apollo/client";
 import LoadingScreen from "../components/LoadingScreen";
 import { NavigateFunction, useNavigate } from "react-router-dom";
+import { paths } from "../configs/router";
 
 const position = new THREE.Vector3()
 const direction = new THREE.Vector3()
@@ -43,7 +44,10 @@ export default function NFTs({ NFT, positions, rotations, category }: {
 
     const { wallet } = useWalletContext()
     const [page, setPage] = useState<number>(1)
-    const { data, updateQuery } = useListedTokens({ after: page === 1 ? undefined : ((page - 1) * PAGE_LIMIT).toString(), first: PAGE_LIMIT, category_eq: category, seller_not_eq: wallet?.address })
+    const now = useMemo(() => {
+        return new Date()
+    }, [])
+    const { data, updateQuery } = useListedTokens({ after: page === 1 ? undefined : ((page - 1) * PAGE_LIMIT).toString(), first: PAGE_LIMIT, category_eq: category, seller_not_eq: wallet?.address, endTime_gte: now })
     const { cart, addToCart: add, removeFromCart: remove, currentIndex, privateKeys } = useWalletContext()
     const { toast } = useToastContext()
     const [buyingToken, setBuyingToken] = useState<ListingTokenEvent | null>(null)
@@ -76,7 +80,16 @@ export default function NFTs({ NFT, positions, rotations, category }: {
     }, [remove])
 
     const handleBuyClick = useCallback((token: ListingTokenEvent) => {
-        buyingToken ? setBuyingToken(null) : setBuyingToken(token)
+        if (buyingToken) setBuyingToken(null);
+        else {
+            if (token.status === ListEventStatus.AUCTIONING) {
+                toast({ text: "Please join auction here", variant: "info" })
+                navigate(paths.nft(token.token.id))
+                return;
+            } else {
+                setBuyingToken(token)
+            }
+        }
     }, [buyingToken, setBuyingToken])
 
     const buy = useCallback(async () => {
@@ -163,7 +176,7 @@ export default function NFTs({ NFT, positions, rotations, category }: {
                                             <Text>Buy NFT</Text>
                                             <Check height={16} width={16} />
                                         </Button> :
-                                        <Button gap={4} flexDirection="row-reverse" width="100%" disabled>
+                                        <Button gap={4} flexDirection="row-reverse" width="100%" disabled onClick={() => toast({ text: "Open menu to connect wallet", variant: "info" })}>
                                             <Text>Connect Wallet</Text>
                                             <Ban height={16} width={16} />
                                         </Button>

@@ -5,7 +5,7 @@ import { useAppContext } from "../../contexts/AppProvider";
 import { RigidBody } from "@react-three/rapier";
 import { Gltf, PositionalAudio, useGLTF } from "@react-three/drei";
 import NFTs, { NFTProps } from "../../components/NFTs";
-import { CollectionCategory } from "../../types/graphql";
+import { CollectionCategory, ListEventStatus } from "../../types/graphql";
 import { Container, DefaultProperties, Root, Text } from "@react-three/uikit";
 import { useFrame } from "@react-three/fiber";
 import { formatUnits } from "ethers";
@@ -147,7 +147,7 @@ export function NFT({ token, index, navigate, handleBuyClick, ...props }: NFTPro
                                 ))
                             }
                             <Container justifyContent="space-between">
-                                <Text>Price:</Text>
+                                <Text>{token.status === ListEventStatus.AUCTIONING ? "Auction:" : "Price:"}</Text>
                                 <Button hover={{ backgroundOpacity: 0.2 }} variant="ghost" borderWidth={2} padding={8} borderColor="cyan" borderRadius={8} marginLeft={8} onClick={handleBuyClick}>
                                     <Text fontWeight={500}>{formatUnits(token.price, token.payToken.decimals)} ${token.payToken.symbol}</Text>
                                 </Button>

@@ -287,16 +287,21 @@ export function ActionScreen({ token }: { token: Token }) {
         return 3
     }, [listData])
 
-
     const isMyToken = useMemo(() => {
         return wallet ? (wallet.address === owner || wallet.address === listData?.listEvents[0]?.seller) : false
     }, [wallet, listData])
 
-    console.log(isMyToken, sellMode)
-
     const handleOpenMenuClick = useCallback(() => {
         toast({ text: "Open menu to continue", variant: "info" })
     }, [])
+
+    const handleAction = useCallback((_action: string) => {
+        if (!wallet) {
+            toast({ text: "Open menu to connect wallet first", variant: "warning" });
+            return;
+        }
+        setAction(_action)
+    }, [wallet, setAction])
 
     const placeBid = useCallback(async () => {
         setLoading(true)
@@ -365,17 +370,21 @@ export function ActionScreen({ token }: { token: Token }) {
                                     {
                                         !isMyToken && sellMode === 1 &&
                                         <>
-                                            <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={() => setAction("offer")}>
+                                            <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8}
+                                                onClick={() => handleAction("offer")}>
                                                 <Text color="cyan">Offer</Text>
                                             </Button>
-                                            <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={() => setAction("buy")}>
+                                            <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8}
+                                                onClick={() => handleAction("buy")}>
                                                 <Text color="cyan">Buy</Text>
                                             </Button>
                                         </>
                                     }
                                     {
-                                        !isMyToken && sellMode === 2 &&
-                                        <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8} onClick={() => setAction("placeBid")}>
+                                        !isMyToken && (sellMode === 2 || sellMode === 3) &&
+                                        <Button borderWidth={1} backgroundOpacity={0} hover={{ backgroundColor: "cyan", backgroundOpacity: 0.1 }} borderColor="cyan" width="100%" gap={8}
+                                            onClick={() => handleAction("placeBid")}
+                                        >
                                             <Text color="cyan">Place bid</Text>
                                         </Button>
                                     }

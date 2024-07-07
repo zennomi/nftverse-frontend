@@ -2,6 +2,10 @@ import { Navigate, createBrowserRouter } from "react-router-dom";
 import XRLayout from "../layouts/XRLayout";
 import PhysicsLayout from "../layouts/Physics";
 
+export const paths = {
+    nft: (id: string) => `/xr/physics/token/futuristic/${id}`
+}
+
 const router = createBrowserRouter([
     {
         path: "/",
@@ -40,7 +44,7 @@ const router = createBrowserRouter([
                         lazy: () => import("../pages/Collection/CarCollection")
                     },
                     {
-                        path: "/xr/physics/token/futuristic/:id",
+                        path: paths.nft(":id"),
                         lazy: () => import("../pages/Token/ScifiToken")
                     },
                     {

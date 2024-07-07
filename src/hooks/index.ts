@@ -7,9 +7,9 @@ import { getOwnerOfToken } from "../utils/ethers";
 
 export * from "./apollo"
 
-const GET_LISTED_TOKENS = (after?: string) => gql`
-query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCategory = ART, $first: Int = 10${after ? ', $after: String = "1"' : ''}) {
-  listEventsConnection(orderBy: timestamp_DESC, where: {status_eq: LISTING, seller_not_eq: $seller_not_eq, collection: {category_eq: $category_eq}}, first: $first${after ? ', after: $after' : ''}) {
+const GET_LISTED_TOKENS = gql`
+query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCategory = ART, $first: Int = 10, $after: String = "1", $endTime_gte: DateTime = "2024-08-06T17:57:32.000Z") {
+  listEventsConnection(orderBy: timestamp_DESC, where: {seller_not_eq: $seller_not_eq, collection: {category_eq: $category_eq}, AND: {status_eq: LISTING, OR: {status_eq: AUCTIONING, auctionData: {endTime_gte: $endTime_gte}}}}, first: $first, after: $after) {
     totalCount
     pageInfo {
       startCursor
@@ -47,6 +47,7 @@ query GetListingTokens($seller_not_eq: String = "", $category_eq: CollectionCate
           name
           symbol
         }
+        status
       }
     }
   }
@@ -182,8 +183,8 @@ const raribleAxios = axios.create({
 
 // graphql 
 
-export const useListedTokens = ({ first, after, seller_not_eq, category_eq }:
-  { first?: number, after?: string, seller_not_eq?: string, category_eq?: CollectionCategory }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after?: string, seller_not_eq?: string, category_eq?: CollectionCategory }>(GET_LISTED_TOKENS(after), { variables: { first, after, seller_not_eq, category_eq } })
+export const useListedTokens = ({ first, after, seller_not_eq, category_eq, endTime_gte }:
+  { first?: number, after?: string, seller_not_eq?: string, category_eq?: CollectionCategory, endTime_gte?: Date }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after: string | null, seller_not_eq?: string, category_eq?: CollectionCategory, endTime_gte?: Date }>(GET_LISTED_TOKENS, { variables: { first, after: after || null, seller_not_eq, category_eq, endTime_gte } })
 
 export const useOwnedListingTokens = ({ first, after, seller_eq, }:
   { first?: number, after?: string, seller_eq?: string, }) => useQuery<{ listEventsConnection: ConnectionQuery<ListingTokenEvent>, }, { first?: number, after: string | null, seller_eq?: string, }>(GET_OWNED_LISTING_TOKENS, { variables: { first, after: after || null, seller_eq, } })

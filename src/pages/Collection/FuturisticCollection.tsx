@@ -5,12 +5,12 @@ import Player from "../../components/Player";
 import { useAppContext } from "../../contexts/AppProvider";
 import { RigidBody } from "@react-three/rapier";
 import { ScifiGallery } from "../../models/ScifiGallery";
-import { CollectionCategory, ListingTokenEvent } from "../../types/graphql";
+import { CollectionCategory, ListEventStatus, ListingTokenEvent } from "../../types/graphql";
 import { RatioImage } from "../../components/override/RatioImage";
 import { GroupProps } from "@react-three/fiber";
 import { Container, GlassMaterial, MetalMaterial, Root, Text } from "@react-three/uikit";
 import { Button } from "../../components/default/button";
-import { Eye, Heart, PackageMinus, PackagePlus, ShoppingCart } from "@react-three/uikit-lucide";
+import { Eye, Gavel, PackageMinus, PackagePlus, ShoppingCart } from "@react-three/uikit-lucide";
 import { getIPFSUri } from "../../utils";
 import { NavigateFunction } from "react-router-dom";
 import NFTs from "../../components/NFTs";
@@ -123,7 +123,17 @@ export function NFT({
                             flexDirection="row-reverse"
                         >
                             <Text color="pink" fontSize={19}>{formatUnits(token.price, token.payToken.decimals)} {token.payToken.symbol}</Text>
-                            <ShoppingCart color="pink" />
+                            {
+                                token.status === ListEventStatus.AUCTIONING ?
+                                    <Gavel color="pink" /> :
+                                    <ShoppingCart color="pink" />
+                            }
+                        </Button>
+
+                    </Container>
+                    <Container flexDirection="row" gap={3}>
+                        <Button backgroundColor={'crimson'} panelMaterialClass={MetalMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} size="icon" onClick={() => navigate(`/xr/physics/token/futuristic/${token.token.id}`)}>
+                            <Eye color="pink" />
                         </Button>
                         {
                             inCart
@@ -153,14 +163,6 @@ export function NFT({
                                     <PackagePlus color="pink" />
                                 </Button>
                         }
-                    </Container>
-                    <Container flexDirection="row" gap={3}>
-                        <Button backgroundColor={'crimson'} panelMaterialClass={MetalMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} size="icon" onClick={() => navigate(`/xr/physics/token/futuristic/${token.token.id}`)}>
-                            <Eye color="pink" />
-                        </Button>
-                        <Button backgroundColor={'crimson'} panelMaterialClass={MetalMaterial} borderBend={0.5} borderWidth={4} borderOpacity={0} size="icon">
-                            <Heart color="pink" />
-                        </Button>
                     </Container>
                 </Root>
             </mesh>
